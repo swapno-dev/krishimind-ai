@@ -82,7 +82,7 @@ const LANGS = [
 
 /* -------------------------------- mock data -------------------------------- */
 
-const CROPS = ["Rice", "Wheat", "Potato", "Maize", "Mustard"];
+const CROPS = ["Rice","Wheat","Potato","Maize","Mustard","Tomato","Brinjal","Carrot","Cabbage","Cauliflower","Onion","Garlic","Chilli","Cucumber","Pumpkin"];
 const SOILS = ["Alluvial", "Loamy", "Clay", "Sandy"];
 const STAGES = ["Sowing", "Vegetative", "Flowering", "Grain fill", "Maturity"];
 
