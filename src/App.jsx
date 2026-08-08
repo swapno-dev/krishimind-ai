@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from "react";
+import React, { useState, useRef, useCallback, useEffect } from "react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import {
   Sprout, Leaf, CloudRain, Camera, MessageCircle, TrendingUp,
@@ -341,35 +341,173 @@ function SectionHeader({ title, sub }) {
 /* ---------------------------------- home ---------------------------------- */
 
 function HomeView({ t, setTab, lang }) {
+  const [weather, setWeather] = useState(null);
+  const [market, setMarket] = useState(null);
+
+  useEffect(() => {
+    async function loadHomeData() {
+      try {
+        const [weatherRes, marketRes] = await Promise.all([
+          fetch("/api/weather?location=Kolkata"),
+          fetch("/api/markets?crop=Potato"),
+        ]);
+
+        const weatherData = await weatherRes.json();
+        const marketData = await marketRes.json();
+
+        setWeather(weatherData);
+        setMarket(marketData);
+      } catch (error) {
+        console.error("Failed to load home data:", error);
+      }
+    }
+
+    loadHomeData();
+  }, []);
+
+  const temperature = weather?.temperature ?? "--";
+  const humidity = weather?.humidity ?? "--";
+  const wind = weather?.wind_speed ?? "--";
+  const rain = weather?.rain_probability ?? "--";
+
+  const bestMarket = market?.markets?.length
+    ? [...market.markets].sort((a, b) => b.price - a.price)[0]
+    : null;
+
   return (
     <div style={{ paddingBottom: 40 }}>
       <div style={{
-        background: "linear-gradient(135deg, var(--forest), #2C5238)", borderRadius: 18, padding: "26px 24px",
-        color: "#fff", marginBottom: 22, position: "relative", overflow: "hidden",
+        background: "linear-gradient(135deg, var(--forest), #2C5238)",
+        borderRadius: 18,
+        padding: "26px 24px",
+        color: "#fff",
+        marginBottom: 22,
+        position: "relative",
+        overflow: "hidden",
       }}>
-        <Sun size={90} style={{ position: "absolute", right: -10, top: -20, color: "rgba(227,167,58,0.25)" }} />
-        <div style={{ fontSize: 13, color: "#C9D9C7", fontWeight: 600, letterSpacing: 0.4 }}>{t.weatherNote}</div>
-        <h1 className="display" style={{ fontSize: 26, margin: "6px 0 14px" }}>{t.greeting}</h1>
-        <div style={{ display: "flex", gap: 22, flexWrap: "wrap" }}>
-          <WeatherStat icon={Sun} label="32°C" sub="Clear" />
-          <WeatherStat icon={Droplets} label="64%" sub="Humidity" />
-          <WeatherStat icon={Wind} label="11 km/h" sub="Wind" />
-          <WeatherStat icon={CloudRain} label="Low" sub="Rain (48h)" />
+        <Sun
+          size={90}
+          style={{
+            position: "absolute",
+            right: -10,
+            top: -20,
+            color: "rgba(227,167,58,0.25)"
+          }}
+        />
+
+        <div style={{
+          fontSize: 13,
+          color: "#C9D9C7",
+          fontWeight: 600,
+          letterSpacing: 0.4
+        }}>
+          {t.weatherNote}
+        </div>
+
+        <h1
+          className="display"
+          style={{ fontSize: 26, margin: "6px 0 14px" }}
+        >
+          {t.greeting}
+        </h1>
+
+        <div style={{
+          display: "flex",
+          gap: 22,
+          flexWrap: "wrap"
+        }}>
+          <WeatherStat
+            icon={Sun}
+            label={`${temperature}°C`}
+            sub="Temperature"
+          />
+
+          <WeatherStat
+            icon={Droplets}
+            label={`${humidity}%`}
+            sub="Humidity"
+          />
+
+          <WeatherStat
+            icon={Wind}
+            label={`${wind} km/h`}
+            sub="Wind"
+          />
+
+          <WeatherStat
+            icon={CloudRain}
+            label={`${rain}%`}
+            sub="Rain probability"
+          />
         </div>
       </div>
 
       <SectionHeader title={t.quickStats} />
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 14, marginBottom: 30 }}>
-        <StatCard icon={Sprout} label={t.activeCrop} value="Potato — Flowering" color="var(--leaf)" />
-        <StatCard icon={Droplets} label={t.nextTask} value="Irrigate in 2 days" color="var(--sky)" />
-        <StatCard icon={TrendingUp} label={t.marketTip} value="Kolkata Wholesale +₹140/qtl" color="var(--wheat)" />
+
+      <div style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+        gap: 14,
+        marginBottom: 30
+      }}>
+        <StatCard
+          icon={Sprout}
+          label={t.activeCrop}
+          value="Potato — Flowering"
+          color="var(--leaf)"
+        />
+
+        <StatCard
+          icon={Droplets}
+          label={t.nextTask}
+          value="Check Water & Feed Plan"
+          color="var(--sky)"
+        />
+
+        <StatCard
+          icon={TrendingUp}
+          label={t.marketTip}
+          value={
+            bestMarket
+              ? `${bestMarket.market} ₹${bestMarket.price}/qtl`
+              : "Loading market..."
+          }
+          color="var(--wheat)"
+        />
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 14 }}>
-        <NavTile icon={Leaf} title={t.doctorTitle} desc={t.doctorSub} onClick={() => setTab("doctor")} />
-        <NavTile icon={Droplets} title={t.advisoryTitle} desc={t.advisorySub} onClick={() => setTab("advisory")} />
-        <NavTile icon={TrendingUp} title={t.mandiTitle} desc={t.mandiSub} onClick={() => setTab("mandi")} />
-        <NavTile icon={MessageCircle} title={t.assistantTitle} desc={t.assistantSub} onClick={() => setTab("assistant")} />
+      <div style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+        gap: 14
+      }}>
+        <NavTile
+          icon={Leaf}
+          title={t.doctorTitle}
+          desc={t.doctorSub}
+          onClick={() => setTab("doctor")}
+        />
+
+        <NavTile
+          icon={Droplets}
+          title={t.advisoryTitle}
+          desc={t.advisorySub}
+          onClick={() => setTab("advisory")}
+        />
+
+        <NavTile
+          icon={TrendingUp}
+          title={t.mandiTitle}
+          desc={t.mandiSub}
+          onClick={() => setTab("mandi")}
+        />
+
+        <NavTile
+          icon={MessageCircle}
+          title={t.assistantTitle}
+          desc={t.assistantSub}
+          onClick={() => setTab("assistant")}
+        />
       </div>
     </div>
   );
@@ -570,58 +708,186 @@ function AdvisoryView({ t }) {
   const [stage, setStage] = useState(STAGES[2]);
   const [rainDays, setRainDays] = useState(3);
   const [plan, setPlan] = useState(null);
+  const [loading, setLoading] = useState(false);
 
-  const onGenerate = () => setPlan(buildPlan(crop, soil, stage, rainDays, t));
+  const onGenerate = async () => {
+    setLoading(true);
+
+    try {
+      const response = await fetch(
+        `/api/recommendation?crop=${encodeURIComponent(crop)}&soil=${encodeURIComponent(soil)}&stage=${encodeURIComponent(stage)}&rainDays=${rainDays}`
+      );
+
+      const data = await response.json();
+      setPlan(data);
+    } catch (error) {
+      console.error("Recommendation error:", error);
+      setPlan(null);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const Field = ({ label, children }) => (
     <div style={{ marginBottom: 16 }}>
-      <label style={{ display: "block", fontSize: 12.5, fontWeight: 700, color: "#5B6B5D", marginBottom: 6 }}>{label}</label>
+      <label style={{
+        display: "block",
+        fontSize: 12.5,
+        fontWeight: 700,
+        color: "#5B6B5D",
+        marginBottom: 6
+      }}>
+        {label}
+      </label>
       {children}
     </div>
   );
-  const selStyle = { width: "100%", padding: "10px 12px", borderRadius: 10, border: "1px solid #DCD5C2", fontSize: 14, background: "#fff", color: "var(--forest)" };
+
+  const selStyle = {
+    width: "100%",
+    padding: "10px 12px",
+    borderRadius: 10,
+    border: "1px solid #DCD5C2",
+    fontSize: 14,
+    background: "#fff",
+    color: "var(--forest)"
+  };
 
   return (
     <div>
-      <SectionHeader title={t.advisoryTitle} sub={t.advisorySub} />
-      <div style={{ display: "grid", gridTemplateColumns: "minmax(240px,320px) 1fr", gap: 22, alignItems: "start" }}>
-        <div style={{ background: "#fff", border: "1px solid #ECE7D8", borderRadius: 16, padding: 20 }}>
+      <SectionHeader
+        title={t.advisoryTitle}
+        sub={t.advisorySub}
+      />
+
+      <div style={{
+        display: "grid",
+        gridTemplateColumns: "minmax(240px,320px) 1fr",
+        gap: 22,
+        alignItems: "start"
+      }}>
+
+        <div style={{
+          background: "#fff",
+          border: "1px solid #ECE7D8",
+          borderRadius: 16,
+          padding: 20
+        }}>
+
           <Field label={t.crop}>
-            <select style={selStyle} value={crop} onChange={(e) => setCrop(e.target.value)}>
-              {CROPS.map((c) => <option key={c}>{c}</option>)}
+            <select
+              style={selStyle}
+              value={crop}
+              onChange={(e) => setCrop(e.target.value)}
+            >
+              {CROPS.map((c) => (
+                <option key={c}>{c}</option>
+              ))}
             </select>
           </Field>
+
           <Field label={t.soil}>
-            <select style={selStyle} value={soil} onChange={(e) => setSoil(e.target.value)}>
-              {SOILS.map((s) => <option key={s}>{s}</option>)}
+            <select
+              style={selStyle}
+              value={soil}
+              onChange={(e) => setSoil(e.target.value)}
+            >
+              {SOILS.map((s) => (
+                <option key={s}>{s}</option>
+              ))}
             </select>
           </Field>
+
           <Field label={t.stage}>
-            <select style={selStyle} value={stage} onChange={(e) => setStage(e.target.value)}>
-              {STAGES.map((s) => <option key={s}>{s}</option>)}
+            <select
+              style={selStyle}
+              value={stage}
+              onChange={(e) => setStage(e.target.value)}
+            >
+              {STAGES.map((s) => (
+                <option key={s}>{s}</option>
+              ))}
             </select>
           </Field>
+
           <Field label={`${t.rain}: ${rainDays}`}>
-            <input type="range" min="0" max="10" value={rainDays} onChange={(e) => setRainDays(Number(e.target.value))} style={{ width: "100%" }} />
+            <input
+              type="range"
+              min="0"
+              max="10"
+              value={rainDays}
+              onChange={(e) => setRainDays(Number(e.target.value))}
+              style={{ width: "100%" }}
+            />
           </Field>
-          <button onClick={onGenerate} style={{
-            width: "100%", background: "var(--leaf)", color: "#fff", border: "none", borderRadius: 10,
-            padding: "12px 0", fontWeight: 700, fontSize: 14, marginTop: 6,
-          }}>{t.generate}</button>
+
+          <button
+            onClick={onGenerate}
+            disabled={loading}
+            style={{
+              width: "100%",
+              background: "var(--leaf)",
+              color: "#fff",
+              border: "none",
+              borderRadius: 10,
+              padding: "12px 0",
+              fontWeight: 700,
+              fontSize: 14,
+              marginTop: 6,
+              opacity: loading ? 0.7 : 1
+            }}
+          >
+            {loading ? "Generating..." : t.generate}
+          </button>
         </div>
 
-        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-          {!plan && (
-            <div style={{ background: "#fff", border: "1px solid #ECE7D8", borderRadius: 16, padding: 40, textAlign: "center", color: "#9AA69B" }}>
-              <Droplets size={28} style={{ marginBottom: 10, opacity: 0.5 }} />
-              <div style={{ fontSize: 14 }}>{t.advisorySub}</div>
+        <div style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: 14
+        }}>
+
+          {!plan && !loading && (
+            <div style={{
+              background: "#fff",
+              border: "1px solid #ECE7D8",
+              borderRadius: 16,
+              padding: 40,
+              textAlign: "center",
+              color: "#9AA69B"
+            }}>
+              <Droplets
+                size={28}
+                style={{ marginBottom: 10, opacity: 0.5 }}
+              />
+              <div style={{ fontSize: 14 }}>
+                {t.advisorySub}
+              </div>
             </div>
           )}
+
           {plan && (
             <>
-              <PlanCard icon={Droplets} color="var(--sky)" title={t.irrigation} body={plan.irrigation} />
-              <PlanCard icon={Sprout} color="var(--wheat)" title={t.fertilizer} body={plan.fertilizer} />
-              <PlanCard icon={AlertTriangle} color="var(--danger)" title={t.pest} body={plan.pest} />
+              <PlanCard
+                icon={Droplets}
+                color="var(--sky)"
+                title={t.irrigation}
+                body={plan.irrigation}
+              />
+
+              <PlanCard
+                icon={Sprout}
+                color="var(--wheat)"
+                title={t.fertilizer}
+                body={plan.fertilizer}
+              />
+
+              <PlanCard
+                icon={AlertTriangle}
+                color="var(--danger)"
+                title={t.pest}
+                body={plan.pest}
+              />
             </>
           )}
         </div>
@@ -648,67 +914,274 @@ function PlanCard({ icon: Icon, color, title, body }) {
 
 function MandiView({ t }) {
   const [crop, setCrop] = useState(CROPS[0]);
-  const rows = MANDI_DATA[crop];
-  const best = rows.reduce((a, b) => (b.price > a.price ? b : a));
-  const trend = trendFor(best.price);
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadMarkets() {
+      setLoading(true);
+
+      try {
+        const response = await fetch(
+          `/api/markets?crop=${encodeURIComponent(crop)}`
+        );
+
+        const result = await response.json();
+        setData(result);
+      } catch (error) {
+        console.error("Market API error:", error);
+        setData(null);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadMarkets();
+  }, [crop]);
+
+  const rows = data?.markets || [];
+
+  const best = rows.length
+    ? [...rows].sort((a, b) => b.price - a.price)[0]
+    : null;
+
+  const trend = best ? trendFor(best.price) : [];
 
   return (
     <div>
-      <SectionHeader title={t.mandiTitle} sub={t.mandiSub} />
-      <div style={{ display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap" }}>
-        {CROPS.map((c) => (
-          <button key={c} onClick={() => setCrop(c)} style={{
-            padding: "8px 16px", borderRadius: 999, border: "1px solid " + (crop === c ? "var(--forest)" : "#DCD5C2"),
-            background: crop === c ? "var(--forest)" : "#fff", color: crop === c ? "#fff" : "var(--forest)",
-            fontWeight: 600, fontSize: 13,
-          }}>{c}</button>
-        ))}
-      </div>
+      <SectionHeader
+        title={t.mandiTitle}
+        sub={t.mandiSub}
+      />
 
       <div style={{
-        background: "linear-gradient(135deg, var(--wheat), #D68F2A)", borderRadius: 16, padding: 20, marginBottom: 20,
-        color: "#3A2A0E", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12,
+        display: "flex",
+        gap: 8,
+        marginBottom: 20,
+        flexWrap: "wrap"
       }}>
-        <div>
-          <div style={{ fontSize: 12.5, fontWeight: 700, opacity: 0.8 }}>{t.bestPrice}</div>
-          <div className="display" style={{ fontSize: 26, fontWeight: 700 }}>₹{best.price} <span style={{ fontSize: 14, fontWeight: 600 }}>{t.perQuintal}</span></div>
-        </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 6, fontWeight: 700, fontSize: 13.5 }}>
-          <MapPin size={16} /> {best.market} · {best.km} km {t.distance}
-        </div>
-      </div>
-
-      <div style={{ background: "#fff", border: "1px solid #ECE7D8", borderRadius: 16, padding: "18px 18px 8px", marginBottom: 20 }}>
-        <div style={{ fontSize: 13, fontWeight: 700, color: "#5B6B5D", marginBottom: 10 }}>{t.trend} — {crop}</div>
-        <ResponsiveContainer width="100%" height={180}>
-          <LineChart data={trend} margin={{ left: -20, right: 10 }}>
-            <CartesianGrid stroke="#F0ECDF" vertical={false} />
-            <XAxis dataKey="day" tick={{ fontSize: 11, fill: "#9AA69B" }} axisLine={false} tickLine={false} />
-            <YAxis tick={{ fontSize: 11, fill: "#9AA69B" }} axisLine={false} tickLine={false} domain={["dataMin - 50", "dataMax + 50"]} />
-            <Tooltip contentStyle={{ borderRadius: 10, border: "1px solid #ECE7D8", fontSize: 12 }} />
-            <Line type="monotone" dataKey="price" stroke="#4C7A51" strokeWidth={2.5} dot={{ r: 3 }} />
-          </LineChart>
-        </ResponsiveContainer>
-      </div>
-
-      <div style={{ background: "#fff", border: "1px solid #ECE7D8", borderRadius: 16, overflow: "hidden" }}>
-        {rows.sort((a, b) => b.price - a.price).map((r, i) => (
-          <div key={r.market} style={{
-            display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 18px",
-            borderBottom: i < rows.length - 1 ? "1px solid #F0ECDF" : "none",
-            background: r.market === best.market ? "var(--leaf-light)" : "transparent",
-          }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <MapPin size={15} color="#8A9389" />
-              <div>
-                <div style={{ fontWeight: 600, fontSize: 14, color: "var(--forest)" }}>{r.market}</div>
-                <div style={{ fontSize: 11.5, color: "#9AA69B" }}>{r.km} km {t.distance}</div>
-              </div>
-            </div>
-            <div style={{ fontWeight: 700, fontSize: 15, color: "var(--forest)" }}>₹{r.price}</div>
-          </div>
+        {CROPS.map((c) => (
+          <button
+            key={c}
+            onClick={() => setCrop(c)}
+            style={{
+              padding: "8px 16px",
+              borderRadius: 999,
+              border: "1px solid " +
+                (crop === c ? "var(--forest)" : "#DCD5C2"),
+              background: crop === c
+                ? "var(--forest)"
+                : "#fff",
+              color: crop === c
+                ? "#fff"
+                : "var(--forest)",
+              fontWeight: 600,
+              fontSize: 13
+            }}
+          >
+            {c}
+          </button>
         ))}
       </div>
+
+      {loading && (
+        <div style={{
+          background: "#fff",
+          border: "1px solid #ECE7D8",
+          borderRadius: 16,
+          padding: 30,
+          textAlign: "center"
+        }}>
+          Loading market prices...
+        </div>
+      )}
+
+      {!loading && best && (
+        <>
+          <div style={{
+            background: "linear-gradient(135deg, var(--wheat), #D68F2A)",
+            borderRadius: 16,
+            padding: 20,
+            marginBottom: 20,
+            color: "#3A2A0E",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            flexWrap: "wrap",
+            gap: 12
+          }}>
+            <div>
+              <div style={{
+                fontSize: 12.5,
+                fontWeight: 700,
+                opacity: 0.8
+              }}>
+                {t.bestPrice}
+              </div>
+
+              <div
+                className="display"
+                style={{
+                  fontSize: 26,
+                  fontWeight: 700
+                }}
+              >
+                ₹{best.price}
+                <span style={{
+                  fontSize: 14,
+                  fontWeight: 600
+                }}>
+                  {" "}{t.perQuintal}
+                </span>
+              </div>
+            </div>
+
+            <div style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              fontWeight: 700,
+              fontSize: 13.5
+            }}>
+              <MapPin size={16} />
+              {best.market} · {best.km} km {t.distance}
+            </div>
+          </div>
+
+          <div style={{
+            background: "#fff",
+            border: "1px solid #ECE7D8",
+            borderRadius: 16,
+            padding: "18px 18px 8px",
+            marginBottom: 20
+          }}>
+            <div style={{
+              fontSize: 13,
+              fontWeight: 700,
+              color: "#5B6B5D",
+              marginBottom: 10
+            }}>
+              {t.trend} — {crop}
+            </div>
+
+            <ResponsiveContainer width="100%" height={180}>
+              <LineChart
+                data={trend}
+                margin={{ left: -20, right: 10 }}
+              >
+                <CartesianGrid
+                  stroke="#F0ECDF"
+                  vertical={false}
+                />
+
+                <XAxis
+                  dataKey="day"
+                  tick={{
+                    fontSize: 11,
+                    fill: "#9AA69B"
+                  }}
+                  axisLine={false}
+                  tickLine={false}
+                />
+
+                <YAxis
+                  tick={{
+                    fontSize: 11,
+                    fill: "#9AA69B"
+                  }}
+                  axisLine={false}
+                  tickLine={false}
+                  domain={[
+                    "dataMin - 50",
+                    "dataMax + 50"
+                  ]}
+                />
+
+                <Tooltip
+                  contentStyle={{
+                    borderRadius: 10,
+                    border: "1px solid #ECE7D8",
+                    fontSize: 12
+                  }}
+                />
+
+                <Line
+                  type="monotone"
+                  dataKey="price"
+                  stroke="#4C7A51"
+                  strokeWidth={2.5}
+                  dot={{ r: 3 }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+
+          <div style={{
+            background: "#fff",
+            border: "1px solid #ECE7D8",
+            borderRadius: 16,
+            overflow: "hidden"
+          }}>
+            {[...rows]
+              .sort((a, b) => b.price - a.price)
+              .map((r, i) => (
+                <div
+                  key={r.market}
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    padding: "14px 18px",
+                    borderBottom:
+                      i < rows.length - 1
+                        ? "1px solid #F0ECDF"
+                        : "none",
+                    background:
+                      r.market === best.market
+                        ? "var(--leaf-light)"
+                        : "transparent"
+                  }}
+                >
+                  <div style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 10
+                  }}>
+                    <MapPin
+                      size={15}
+                      color="#8A9389"
+                    />
+
+                    <div>
+                      <div style={{
+                        fontWeight: 600,
+                        fontSize: 14,
+                        color: "var(--forest)"
+                      }}>
+                        {r.market}
+                      </div>
+
+                      <div style={{
+                        fontSize: 11.5,
+                        color: "#9AA69B"
+                      }}>
+                        {r.km} km {t.distance}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div style={{
+                    fontWeight: 700,
+                    fontSize: 15,
+                    color: "var(--forest)"
+                  }}>
+                    ₹{r.price}
+                  </div>
+                </div>
+              ))}
+          </div>
+        </>
+      )}
     </div>
   );
 }
@@ -747,64 +1220,225 @@ function reply(text, lang) {
 }
 
 function AssistantView({ t }) {
-  const langKey = Object.keys(STRINGS).find((k) => STRINGS[k] === t) || "en";
-  const [messages, setMessages] = useState([{ from: "bot", text: CANNED.fallback[langKey] }]);
-  const [input, setInput] = useState("");
+  const langKey =
+    Object.keys(STRINGS).find((k) => STRINGS[k] === t) || "en";
 
-  const send = (text) => {
+  const [messages, setMessages] = useState([
+    {
+      from: "bot",
+      text: CANNED.fallback[langKey]
+    }
+  ]);
+
+  const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const send = async (text) => {
     const msg = (text ?? input).trim();
-    if (!msg) return;
-    setMessages((m) => [...m, { from: "user", text: msg }]);
+
+    if (!msg || loading) return;
+
+    setMessages((m) => [
+      ...m,
+      { from: "user", text: msg }
+    ]);
+
     setInput("");
-    setTimeout(() => {
-      setMessages((m) => [...m, { from: "bot", text: reply(msg, langKey) }]);
-    }, 500);
+    setLoading(true);
+
+    try {
+      const response = await fetch(
+        `/api/assistant?question=${encodeURIComponent(msg)}`
+      );
+
+      const data = await response.json();
+
+      setMessages((m) => [
+        ...m,
+        {
+          from: "bot",
+          text: data.answer || "Sorry, I could not answer that."
+        }
+      ]);
+    } catch (error) {
+      console.error("Assistant API error:", error);
+
+      setMessages((m) => [
+        ...m,
+        {
+          from: "bot",
+          text: "Sorry, I could not connect to KrishiMind right now."
+        }
+      ]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div>
-      <SectionHeader title={t.assistantTitle} sub={t.assistantSub} />
-      <div style={{ background: "#fff", border: "1px solid #ECE7D8", borderRadius: 16, display: "flex", flexDirection: "column", height: 440, maxWidth: 640 }}>
-        <div style={{ flex: 1, overflowY: "auto", padding: 18, display: "flex", flexDirection: "column", gap: 10 }}>
+      <SectionHeader
+        title={t.assistantTitle}
+        sub={t.assistantSub}
+      />
+
+      <div style={{
+        background: "#fff",
+        border: "1px solid #ECE7D8",
+        borderRadius: 16,
+        display: "flex",
+        flexDirection: "column",
+        height: 440,
+        maxWidth: 640
+      }}>
+
+        <div style={{
+          flex: 1,
+          overflowY: "auto",
+          padding: 18,
+          display: "flex",
+          flexDirection: "column",
+          gap: 10
+        }}>
           {messages.map((m, i) => (
-            <div key={i} style={{
-              alignSelf: m.from === "user" ? "flex-end" : "flex-start",
-              background: m.from === "user" ? "var(--forest)" : "var(--leaf-light)",
-              color: m.from === "user" ? "#fff" : "var(--forest)",
-              padding: "10px 14px", borderRadius: 14,
-              borderBottomRightRadius: m.from === "user" ? 4 : 14,
-              borderBottomLeftRadius: m.from === "bot" ? 4 : 14,
-              maxWidth: "80%", fontSize: 13.5, lineHeight: 1.5,
-            }}>{m.text}</div>
+            <div
+              key={i}
+              style={{
+                alignSelf:
+                  m.from === "user"
+                    ? "flex-end"
+                    : "flex-start",
+
+                background:
+                  m.from === "user"
+                    ? "var(--forest)"
+                    : "var(--leaf-light)",
+
+                color:
+                  m.from === "user"
+                    ? "#fff"
+                    : "var(--forest)",
+
+                padding: "10px 14px",
+                borderRadius: 14,
+
+                borderBottomRightRadius:
+                  m.from === "user" ? 4 : 14,
+
+                borderBottomLeftRadius:
+                  m.from === "bot" ? 4 : 14,
+
+                maxWidth: "80%",
+                fontSize: 13.5,
+                lineHeight: 1.5
+              }}
+            >
+              {m.text}
+            </div>
           ))}
+
+          {loading && (
+            <div style={{
+              alignSelf: "flex-start",
+              background: "var(--leaf-light)",
+              color: "var(--forest)",
+              padding: "10px 14px",
+              borderRadius: 14,
+              fontSize: 13.5
+            }}>
+              KrishiMind is thinking...
+            </div>
+          )}
         </div>
-        <div style={{ padding: 12, borderTop: "1px solid #F0ECDF", display: "flex", gap: 6, flexWrap: "wrap" }}>
+
+        <div style={{
+          padding: 12,
+          borderTop: "1px solid #F0ECDF",
+          display: "flex",
+          gap: 6,
+          flexWrap: "wrap"
+        }}>
           {t.faqChips.map((chip) => (
-            <button key={chip} onClick={() => send(chip)} style={{
-              fontSize: 11.5, padding: "6px 10px", borderRadius: 999, border: "1px solid #DCD5C2",
-              background: "#fff", color: "#5B6B5D", fontWeight: 600,
-            }}>{chip}</button>
+            <button
+              key={chip}
+              onClick={() => send(chip)}
+              style={{
+                fontSize: 11.5,
+                padding: "6px 10px",
+                borderRadius: 999,
+                border: "1px solid #DCD5C2",
+                background: "#fff",
+                color: "#5B6B5D",
+                fontWeight: 600
+              }}
+            >
+              {chip}
+            </button>
           ))}
         </div>
-        <div style={{ padding: 12, borderTop: "1px solid #F0ECDF", display: "flex", gap: 8 }}>
-          <button style={{
-            width: 40, height: 40, borderRadius: 10, border: "1px solid #DCD5C2", background: "#fff",
-            display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
-          }} title="Voice input (demo)">
-            <Mic size={17} color="var(--leaf)" />
+
+        <div style={{
+          padding: 12,
+          borderTop: "1px solid #F0ECDF",
+          display: "flex",
+          gap: 8
+        }}>
+          <button
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 10,
+              border: "1px solid #DCD5C2",
+              background: "#fff",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexShrink: 0
+            }}
+            title="Voice input (demo)"
+          >
+            <Mic
+              size={17}
+              color="var(--leaf)"
+            />
           </button>
+
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && send()}
+            onKeyDown={(e) =>
+              e.key === "Enter" && send()
+            }
             placeholder={t.inputPlaceholder}
-            style={{ flex: 1, border: "1px solid #DCD5C2", borderRadius: 10, padding: "0 14px", fontSize: 13.5 }}
+            style={{
+              flex: 1,
+              border: "1px solid #DCD5C2",
+              borderRadius: 10,
+              padding: "0 14px",
+              fontSize: 13.5
+            }}
           />
-          <button onClick={() => send()} style={{
-            width: 40, height: 40, borderRadius: 10, border: "none", background: "var(--leaf)",
-            display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
-          }}>
-            <Send size={16} color="#fff" />
+
+          <button
+            onClick={() => send()}
+            disabled={loading}
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 10,
+              border: "none",
+              background: "var(--leaf)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexShrink: 0,
+              opacity: loading ? 0.6 : 1
+            }}
+          >
+            <Send
+              size={16}
+              color="#fff"
+            />
           </button>
         </div>
       </div>
