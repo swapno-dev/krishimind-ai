@@ -914,7 +914,8 @@ function PlanCard({ icon: Icon, color, title, body }) {
 
 function MandiView({ t }) {
   const [crop, setCrop] = useState(CROPS[0]);
-  const [data, setData] = useState(null);
+  const [selectedMarket, setSelectedMarket] = useState(null);
+  const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -926,11 +927,22 @@ function MandiView({ t }) {
           `/api/markets?crop=${encodeURIComponent(crop)}`
         );
 
-        const result = await response.json();
-        setData(result);
+        const data = await response.json();
+
+        setRows(data.markets || []);
+
+        // Default to the highest-price market
+        if (data.markets?.length) {
+          const highest = [...data.markets].sort(
+            (a, b) => b.price - a.price
+          )[0];
+
+          setSelectedMarket(highest);
+        }
       } catch (error) {
         console.error("Market API error:", error);
-        setData(null);
+        setRows([]);
+        setSelectedMarket(null);
       } finally {
         setLoading(false);
       }
@@ -939,13 +951,15 @@ function MandiView({ t }) {
     loadMarkets();
   }, [crop]);
 
-  const rows = data?.markets || [];
-
   const best = rows.length
     ? [...rows].sort((a, b) => b.price - a.price)[0]
     : null;
 
-  const trend = best ? trendFor(best.price) : [];
+  const selected = selectedMarket || best;
+
+  const trend = selected
+    ? trendFor(selected.price)
+    : [];
 
   return (
     <div>
@@ -954,6 +968,7 @@ function MandiView({ t }) {
         sub={t.mandiSub}
       />
 
+      {/* CROP SELECTOR */}
       <div style={{
         display: "flex",
         gap: 8,
@@ -963,20 +978,31 @@ function MandiView({ t }) {
         {CROPS.map((c) => (
           <button
             key={c}
-            onClick={() => setCrop(c)}
+            onClick={() => {
+              setCrop(c);
+              setSelectedMarket(null);
+            }}
             style={{
               padding: "8px 16px",
               borderRadius: 999,
               border: "1px solid " +
-                (crop === c ? "var(--forest)" : "#DCD5C2"),
-              background: crop === c
-                ? "var(--forest)"
-                : "#fff",
-              color: crop === c
-                ? "#fff"
-                : "var(--forest)",
+                (crop === c
+                  ? "var(--forest)"
+                  : "#DCD5C2"),
+
+              background:
+                crop === c
+                  ? "var(--forest)"
+                  : "#fff",
+
+              color:
+                crop === c
+                  ? "#fff"
+                  : "var(--forest)",
+
               fontWeight: 600,
-              fontSize: 13
+              fontSize: 13,
+              cursor: "pointer"
             }}
           >
             {c}
@@ -996,17 +1022,23 @@ function MandiView({ t }) {
         </div>
       )}
 
-      {!loading && best && (
+      {!loading && selected && (
         <>
+          {/* SELECTED MARKET */}
           <div style={{
-            background: "linear-gradient(135deg, var(--wheat), #D68F2A)",
+            background:
+              "linear-gradient(135deg, var(--wheat), #D68F2A)",
+
             borderRadius: 16,
             padding: 20,
             marginBottom: 20,
+
             color: "#3A2A0E",
+
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
+
             flexWrap: "wrap",
             gap: 12
           }}>
@@ -1016,7 +1048,9 @@ function MandiView({ t }) {
                 fontWeight: 700,
                 opacity: 0.8
               }}>
-                {t.bestPrice}
+                {selected.market === best?.market
+                  ? "BEST ESTIMATED PRICE"
+                  : "SELECTED MARKET"}
               </div>
 
               <div
@@ -1026,7 +1060,8 @@ function MandiView({ t }) {
                   fontWeight: 700
                 }}
               >
-                ₹{best.price}
+                ₹{selected.price}
+
                 <span style={{
                   fontSize: 14,
                   fontWeight: 600
@@ -1044,10 +1079,14 @@ function MandiView({ t }) {
               fontSize: 13.5
             }}>
               <MapPin size={16} />
-              {best.market} · {best.km} km {t.distance}
+
+              {selected.market}
+              {" · "}
+              {selected.km} km {t.distance}
             </div>
           </div>
 
+          {/* PRICE TREND */}
           <div style={{
             background: "#fff",
             border: "1px solid #ECE7D8",
@@ -1064,10 +1103,16 @@ function MandiView({ t }) {
               {t.trend} — {crop}
             </div>
 
-            <ResponsiveContainer width="100%" height={180}>
+            <ResponsiveContainer
+              width="100%"
+              height={180}
+            >
               <LineChart
                 data={trend}
-                margin={{ left: -20, right: 10 }}
+                margin={{
+                  left: -20,
+                  right: 10
+                }}
               >
                 <CartesianGrid
                   stroke="#F0ECDF"
@@ -1116,69 +1161,116 @@ function MandiView({ t }) {
             </ResponsiveContainer>
           </div>
 
+          {/* MARKET LIST */}
           <div style={{
             background: "#fff",
             border: "1px solid #ECE7D8",
             borderRadius: 16,
             overflow: "hidden"
           }}>
-            {[...rows]
+            <div style={{
+              padding: "13px 18px",
+              background: "#F8F6EF",
+              fontSize: 12,
+              fontWeight: 700,
+              color: "#687469"
+            }}>
+              Select a market to compare
+            </div>
+
+            {rows
               .sort((a, b) => b.price - a.price)
-              .map((r, i) => (
-                <div
-                  key={r.market}
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    padding: "14px 18px",
-                    borderBottom:
-                      i < rows.length - 1
-                        ? "1px solid #F0ECDF"
-                        : "none",
-                    background:
-                      r.market === best.market
-                        ? "var(--leaf-light)"
-                        : "transparent"
-                  }}
-                >
-                  <div style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 10
-                  }}>
-                    <MapPin
-                      size={15}
-                      color="#8A9389"
-                    />
+              .map((r, i) => {
 
-                    <div>
-                      <div style={{
-                        fontWeight: 600,
-                        fontSize: 14,
-                        color: "var(--forest)"
-                      }}>
-                        {r.market}
-                      </div>
+                const isSelected =
+                  selected.market === r.market;
 
-                      <div style={{
-                        fontSize: 11.5,
-                        color: "#9AA69B"
-                      }}>
-                        {r.km} km {t.distance}
+                const isBest =
+                  best?.market === r.market;
+
+                return (
+                  <button
+                    key={r.market}
+                    onClick={() => setSelectedMarket(r)}
+                    style={{
+                      width: "100%",
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+
+                      padding: "14px 18px",
+
+                      border: "none",
+                      borderBottom:
+                        i < rows.length - 1
+                          ? "1px solid #F0ECDF"
+                          : "none",
+
+                      background:
+                        isSelected
+                          ? "var(--leaf-light)"
+                          : "#fff",
+
+                      cursor: "pointer",
+                      textAlign: "left"
+                    }}
+                  >
+                    <div style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 10
+                    }}>
+                      <MapPin
+                        size={15}
+                        color={
+                          isSelected
+                            ? "var(--leaf)"
+                            : "#8A9389"
+                        }
+                      />
+
+                      <div>
+                        <div style={{
+                          fontWeight: 600,
+                          fontSize: 14,
+                          color: "var(--forest)"
+                        }}>
+                          {r.market}
+
+                          {isBest && (
+                            <span style={{
+                              marginLeft: 8,
+                              fontSize: 10,
+                              padding: "3px 7px",
+                              borderRadius: 999,
+                              background: "#E9F3E8",
+                              color: "var(--leaf)",
+                              fontWeight: 700
+                            }}>
+                              BEST
+                            </span>
+                          )}
+                        </div>
+
+                        <div style={{
+                          fontSize: 11.5,
+                          color: "#9AA69B"
+                        }}>
+                          {r.km} km {t.distance}
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  <div style={{
-                    fontWeight: 700,
-                    fontSize: 15,
-                    color: "var(--forest)"
-                  }}>
-                    ₹{r.price}
-                  </div>
-                </div>
-              ))}
+                    <div style={{
+                      fontWeight: 700,
+                      fontSize: 15,
+                      color: "var(--forest)"
+                    }}>
+                      ₹{r.price}
+                    </div>
+                  </button>
+                );
+              })}
           </div>
         </>
       )}
