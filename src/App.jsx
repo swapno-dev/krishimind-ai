@@ -119,14 +119,18 @@ const MANDI_DATA = {
   ],
 };
 
-function trendFor(base) {
+function trendFor(base, seed = 1) {
   const out = [];
   let v = base * 0.94;
   for (let i = 6; i >= 0; i--) {
-    v += (Math.random() - 0.4) * base * 0.015;
-    out.push({ day: `D-${i}`, price: Math.round(v) });
+    const variation =
+      Math.sin(seed * 1.7 + i * 1.3) * base * 0.012;
+    v += variation;
+    out.push({
+      day: `D-${i}`,
+      price: Math.round(v),
+    });
   }
-  out[out.length - 1].price = base;
   return out;
 }
 
@@ -914,52 +918,39 @@ function PlanCard({ icon: Icon, color, title, body }) {
 
 function MandiView({ t }) {
   const [crop, setCrop] = useState(CROPS[0]);
-  const [selectedMarket, setSelectedMarket] = useState(null);
-  const [rows, setRows] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const rows = MANDI_DATA[crop];
 
+  // Kolkata selected by default
+  const defaultMarket =
+    rows.find((r) => r.market === "Kolkata Wholesale") || rows[0];
+
+  const [selectedMarket, setSelectedMarket] = useState(defaultMarket);
+
+  // When crop changes, select Kolkata again
   useEffect(() => {
-    async function loadMarkets() {
-      setLoading(true);
+    const next =
+      rows.find((r) => r.market === "Kolkata Wholesale") || rows[0];
 
-      try {
-        const response = await fetch(
-          `/api/markets?crop=${encodeURIComponent(crop)}`
-        );
-
-        const data = await response.json();
-
-        setRows(data.markets || []);
-
-        // Default to the highest-price market
-        if (data.markets?.length) {
-          const highest = [...data.markets].sort(
-            (a, b) => b.price - a.price
-          )[0];
-
-          setSelectedMarket(highest);
-        }
-      } catch (error) {
-        console.error("Market API error:", error);
-        setRows([]);
-        setSelectedMarket(null);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    loadMarkets();
+    setSelectedMarket(next);
   }, [crop]);
 
-  const best = rows.length
-    ? [...rows].sort((a, b) => b.price - a.price)[0]
-    : null;
+  const best = rows.reduce(
+    (a, b) => (b.price > a.price ? b : a),
+    rows[0]
+  );
 
-  const selected = selectedMarket || best;
+  const selected =
+    selectedMarket || best;
 
-  const trend = selected
-    ? trendFor(selected.price)
-    : [];
+  const marketSeed =
+    rows.findIndex(
+      (r) => r.market === selected.market
+    ) + 1;
+
+  const trend = trendFor(
+    selected.price,
+    marketSeed
+  );
 
   return (
     <div>
@@ -969,40 +960,37 @@ function MandiView({ t }) {
       />
 
       {/* CROP SELECTOR */}
-      <div style={{
-        display: "flex",
-        gap: 8,
-        marginBottom: 20,
-        flexWrap: "wrap"
-      }}>
+      <div
+        style={{
+          display: "flex",
+          gap: 8,
+          marginBottom: 20,
+          flexWrap: "wrap",
+        }}
+      >
         {CROPS.map((c) => (
           <button
             key={c}
-            onClick={() => {
-              setCrop(c);
-              setSelectedMarket(null);
-            }}
+            onClick={() => setCrop(c)}
             style={{
               padding: "8px 16px",
               borderRadius: 999,
-              border: "1px solid " +
+              border:
+                "1px solid " +
                 (crop === c
                   ? "var(--forest)"
                   : "#DCD5C2"),
-
               background:
                 crop === c
                   ? "var(--forest)"
                   : "#fff",
-
               color:
                 crop === c
                   ? "#fff"
                   : "var(--forest)",
-
               fontWeight: 600,
               fontSize: 13,
-              cursor: "pointer"
+              cursor: "pointer",
             }}
           >
             {c}
@@ -1010,270 +998,281 @@ function MandiView({ t }) {
         ))}
       </div>
 
-      {loading && (
-        <div style={{
+      {/* SELECTED MARKET CARD */}
+      <div
+        style={{
+          background:
+            "linear-gradient(135deg, var(--wheat), #D68F2A)",
+          borderRadius: 16,
+          padding: 20,
+          marginBottom: 20,
+          color: "#3A2A0E",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          flexWrap: "wrap",
+          gap: 12,
+        }}
+      >
+        <div>
+          <div
+            style={{
+              fontSize: 12.5,
+              fontWeight: 700,
+              opacity: 0.8,
+            }}
+          >
+            {selected.market === best.market
+              ? "BEST ESTIMATED PRICE"
+              : "SELECTED MARKET"}
+          </div>
+
+          <div
+            className="display"
+            style={{
+              fontSize: 26,
+              fontWeight: 700,
+            }}
+          >
+            ₹{selected.price}
+
+            <span
+              style={{
+                fontSize: 14,
+                fontWeight: 600,
+              }}
+            >
+              {" "}
+              {t.perQuintal}
+            </span>
+          </div>
+        </div>
+
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 6,
+            fontWeight: 700,
+            fontSize: 13.5,
+          }}
+        >
+          <MapPin size={16} />
+
+          {selected.market}
+          {" · "}
+          {selected.km} km {t.distance}
+        </div>
+      </div>
+
+      {/* 7 DAY TREND */}
+      <div
+        style={{
           background: "#fff",
           border: "1px solid #ECE7D8",
           borderRadius: 16,
-          padding: 30,
-          textAlign: "center"
-        }}>
-          Loading market prices...
+          padding: "18px 18px 8px",
+          marginBottom: 20,
+        }}
+      >
+        <div
+          style={{
+            fontSize: 13,
+            fontWeight: 700,
+            color: "#5B6B5D",
+            marginBottom: 10,
+          }}
+        >
+          {t.trend} — {selected.market}
         </div>
-      )}
 
-      {!loading && selected && (
-        <>
-          {/* SELECTED MARKET */}
-          <div style={{
-            background:
-              "linear-gradient(135deg, var(--wheat), #D68F2A)",
+        <ResponsiveContainer
+          width="100%"
+          height={180}
+        >
+          <LineChart
+            data={trend}
+            margin={{
+              left: -20,
+              right: 10,
+            }}
+          >
+            <CartesianGrid
+              stroke="#F0ECDF"
+              vertical={false}
+            />
 
-            borderRadius: 16,
-            padding: 20,
-            marginBottom: 20,
+            <XAxis
+              dataKey="day"
+              tick={{
+                fontSize: 11,
+                fill: "#9AA69B",
+              }}
+              axisLine={false}
+              tickLine={false}
+            />
 
-            color: "#3A2A0E",
+            <YAxis
+              tick={{
+                fontSize: 11,
+                fill: "#9AA69B",
+              }}
+              axisLine={false}
+              tickLine={false}
+              domain={[
+                "dataMin - 50",
+                "dataMax + 50",
+              ]}
+            />
 
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
+            <Tooltip
+              contentStyle={{
+                borderRadius: 10,
+                border: "1px solid #ECE7D8",
+                fontSize: 12,
+              }}
+              formatter={(value) => [
+                `₹${value}`,
+                "Price",
+              ]}
+            />
 
-            flexWrap: "wrap",
-            gap: 12
-          }}>
-            <div>
-              <div style={{
-                fontSize: 12.5,
-                fontWeight: 700,
-                opacity: 0.8
-              }}>
-                {selected.market === best?.market
-                  ? "BEST ESTIMATED PRICE"
-                  : "SELECTED MARKET"}
+            <Line
+              type="monotone"
+              dataKey="price"
+              stroke="#4C7A51"
+              strokeWidth={2.5}
+              dot={{ r: 3 }}
+            />
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
+
+      {/* MARKET LIST */}
+      <div
+        style={{
+          background: "#fff",
+          border: "1px solid #ECE7D8",
+          borderRadius: 16,
+          overflow: "hidden",
+        }}
+      >
+        <div
+          style={{
+            padding: "13px 18px",
+            background: "#F8F6EF",
+            fontSize: 12,
+            fontWeight: 700,
+            color: "#687469",
+          }}
+        >
+          Select a market to view its 7-day trend
+        </div>
+
+        {rows.map((r, i) => {
+          const isSelected =
+            selected.market === r.market;
+
+          const isBest =
+            best.market === r.market;
+
+          return (
+            <button
+              key={r.market}
+              onClick={() =>
+                setSelectedMarket(r)
+              }
+              style={{
+                width: "100%",
+                display: "flex",
+                justifyContent:
+                  "space-between",
+                alignItems: "center",
+                padding: "14px 18px",
+                border: "none",
+                borderBottom:
+                  i < rows.length - 1
+                    ? "1px solid #F0ECDF"
+                    : "none",
+                background:
+                  isSelected
+                    ? "var(--leaf-light)"
+                    : "#fff",
+                cursor: "pointer",
+                textAlign: "left",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 10,
+                }}
+              >
+                <MapPin
+                  size={15}
+                  color={
+                    isSelected
+                      ? "var(--leaf)"
+                      : "#8A9389"
+                  }
+                />
+
+                <div>
+                  <div
+                    style={{
+                      fontWeight: 600,
+                      fontSize: 14,
+                      color:
+                        "var(--forest)",
+                    }}
+                  >
+                    {r.market}
+
+                    {isBest && (
+                      <span
+                        style={{
+                          marginLeft: 8,
+                          fontSize: 10,
+                          padding: "3px 7px",
+                          borderRadius: 999,
+                          background:
+                            "#E9F3E8",
+                          color:
+                            "var(--leaf)",
+                          fontWeight: 700,
+                        }}
+                      >
+                        BEST
+                      </span>
+                    )}
+                  </div>
+
+                  <div
+                    style={{
+                      fontSize: 11.5,
+                      color: "#9AA69B",
+                    }}
+                  >
+                    {r.km} km {t.distance}
+                  </div>
+                </div>
               </div>
 
               <div
-                className="display"
                 style={{
-                  fontSize: 26,
-                  fontWeight: 700
+                  fontWeight: 700,
+                  fontSize: 15,
+                  color:
+                    "var(--forest)",
                 }}
               >
-                ₹{selected.price}
-
-                <span style={{
-                  fontSize: 14,
-                  fontWeight: 600
-                }}>
-                  {" "}{t.perQuintal}
-                </span>
+                ₹{r.price}
               </div>
-            </div>
-
-            <div style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 6,
-              fontWeight: 700,
-              fontSize: 13.5
-            }}>
-              <MapPin size={16} />
-
-              {selected.market}
-              {" · "}
-              {selected.km} km {t.distance}
-            </div>
-          </div>
-
-          {/* PRICE TREND */}
-          <div style={{
-            background: "#fff",
-            border: "1px solid #ECE7D8",
-            borderRadius: 16,
-            padding: "18px 18px 8px",
-            marginBottom: 20
-          }}>
-            <div style={{
-              fontSize: 13,
-              fontWeight: 700,
-              color: "#5B6B5D",
-              marginBottom: 10
-            }}>
-              {t.trend} — {crop}
-            </div>
-
-            <ResponsiveContainer
-              width="100%"
-              height={180}
-            >
-              <LineChart
-                data={trend}
-                margin={{
-                  left: -20,
-                  right: 10
-                }}
-              >
-                <CartesianGrid
-                  stroke="#F0ECDF"
-                  vertical={false}
-                />
-
-                <XAxis
-                  dataKey="day"
-                  tick={{
-                    fontSize: 11,
-                    fill: "#9AA69B"
-                  }}
-                  axisLine={false}
-                  tickLine={false}
-                />
-
-                <YAxis
-                  tick={{
-                    fontSize: 11,
-                    fill: "#9AA69B"
-                  }}
-                  axisLine={false}
-                  tickLine={false}
-                  domain={[
-                    "dataMin - 50",
-                    "dataMax + 50"
-                  ]}
-                />
-
-                <Tooltip
-                  contentStyle={{
-                    borderRadius: 10,
-                    border: "1px solid #ECE7D8",
-                    fontSize: 12
-                  }}
-                />
-
-                <Line
-                  type="monotone"
-                  dataKey="price"
-                  stroke="#4C7A51"
-                  strokeWidth={2.5}
-                  dot={{ r: 3 }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-
-          {/* MARKET LIST */}
-          <div style={{
-            background: "#fff",
-            border: "1px solid #ECE7D8",
-            borderRadius: 16,
-            overflow: "hidden"
-          }}>
-            <div style={{
-              padding: "13px 18px",
-              background: "#F8F6EF",
-              fontSize: 12,
-              fontWeight: 700,
-              color: "#687469"
-            }}>
-              Select a market to compare
-            </div>
-
-            {rows
-              .sort((a, b) => b.price - a.price)
-              .map((r, i) => {
-
-                const isSelected =
-                  selected.market === r.market;
-
-                const isBest =
-                  best?.market === r.market;
-
-                return (
-                  <button
-                    key={r.market}
-                    onClick={() => setSelectedMarket(r)}
-                    style={{
-                      width: "100%",
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-
-                      padding: "14px 18px",
-
-                      border: "none",
-                      borderBottom:
-                        i < rows.length - 1
-                          ? "1px solid #F0ECDF"
-                          : "none",
-
-                      background:
-                        isSelected
-                          ? "var(--leaf-light)"
-                          : "#fff",
-
-                      cursor: "pointer",
-                      textAlign: "left"
-                    }}
-                  >
-                    <div style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 10
-                    }}>
-                      <MapPin
-                        size={15}
-                        color={
-                          isSelected
-                            ? "var(--leaf)"
-                            : "#8A9389"
-                        }
-                      />
-
-                      <div>
-                        <div style={{
-                          fontWeight: 600,
-                          fontSize: 14,
-                          color: "var(--forest)"
-                        }}>
-                          {r.market}
-
-                          {isBest && (
-                            <span style={{
-                              marginLeft: 8,
-                              fontSize: 10,
-                              padding: "3px 7px",
-                              borderRadius: 999,
-                              background: "#E9F3E8",
-                              color: "var(--leaf)",
-                              fontWeight: 700
-                            }}>
-                              BEST
-                            </span>
-                          )}
-                        </div>
-
-                        <div style={{
-                          fontSize: 11.5,
-                          color: "#9AA69B"
-                        }}>
-                          {r.km} km {t.distance}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div style={{
-                      fontWeight: 700,
-                      fontSize: 15,
-                      color: "var(--forest)"
-                    }}>
-                      ₹{r.price}
-                    </div>
-                  </button>
-                );
-              })}
-          </div>
-        </>
-      )}
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }
