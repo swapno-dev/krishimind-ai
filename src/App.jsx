@@ -92,30 +92,194 @@ const MANDI_DATA = {
     { market: "Madhyamgram", km: 7, price: 2140 },
     { market: "Basirhat", km: 18, price: 2260 },
     { market: "Kolkata Wholesale", km: 26, price: 2310 },
+    { market: "Howrah Mandi", km: 31, price: 2240 },
+    { market: "Behala Market", km: 24, price: 2200 },
+    { market: "Purulia Mandi", km: 290, price: 2100 },
+    { market: "Malda Mandi", km: 350, price: 2290 },
+    { market: "Darjeeling Market", km: 620, price: 2180 },
+    { market: "Haldia Market", km: 125, price: 2250 },
   ],
+
   Wheat: [
     { market: "Barasat Mandi", km: 3, price: 2410 },
     { market: "Madhyamgram", km: 7, price: 2390 },
     { market: "Basirhat", km: 18, price: 2455 },
     { market: "Kolkata Wholesale", km: 26, price: 2480 },
+    { market: "Howrah Mandi", km: 31, price: 2460 },
+    { market: "Behala Market", km: 24, price: 2430 },
+    { market: "Purulia Mandi", km: 290, price: 2350 },
+    { market: "Malda Mandi", km: 350, price: 2470 },
+    { market: "Darjeeling Market", km: 620, price: 2380 },
+    { market: "Haldia Market", km: 125, price: 2440 },
   ],
+
   Potato: [
     { market: "Barasat Mandi", km: 3, price: 1120 },
     { market: "Madhyamgram", km: 7, price: 1085 },
     { market: "Basirhat", km: 18, price: 1210 },
     { market: "Kolkata Wholesale", km: 26, price: 1260 },
+    { market: "Howrah Mandi", km: 31, price: 1190 },
+    { market: "Behala Market", km: 24, price: 1160 },
+    { market: "Purulia Mandi", km: 290, price: 1090 },
+    { market: "Malda Mandi", km: 350, price: 1175 },
+    { market: "Darjeeling Market", km: 620, price: 1140 },
+    { market: "Haldia Market", km: 125, price: 1200 },
   ],
+
   Maize: [
     { market: "Barasat Mandi", km: 3, price: 1890 },
     { market: "Madhyamgram", km: 7, price: 1860 },
     { market: "Basirhat", km: 18, price: 1930 },
     { market: "Kolkata Wholesale", km: 26, price: 1975 },
+    { market: "Howrah Mandi", km: 31, price: 1940 },
+    { market: "Behala Market", km: 24, price: 1910 },
+    { market: "Purulia Mandi", km: 290, price: 1840 },
+    { market: "Malda Mandi", km: 350, price: 1960 },
+    { market: "Darjeeling Market", km: 620, price: 1880 },
+    { market: "Haldia Market", km: 125, price: 1925 },
   ],
+
   Mustard: [
     { market: "Barasat Mandi", km: 3, price: 5320 },
     { market: "Madhyamgram", km: 7, price: 5260 },
     { market: "Basirhat", km: 18, price: 5410 },
     { market: "Kolkata Wholesale", km: 26, price: 5480 },
+    { market: "Howrah Mandi", km: 31, price: 5440 },
+    { market: "Behala Market", km: 24, price: 5370 },
+    { market: "Purulia Mandi", km: 290, price: 5190 },
+    { market: "Malda Mandi", km: 350, price: 5450 },
+    { market: "Darjeeling Market", km: 620, price: 5280 },
+    { market: "Haldia Market", km: 125, price: 5430 },
+  ],
+
+  Tomato: [
+    { market: "Barasat Mandi", km: 3, price: 2800 },
+    { market: "Madhyamgram", km: 7, price: 2700 },
+    { market: "Basirhat", km: 18, price: 2950 },
+    { market: "Kolkata Wholesale", km: 26, price: 3100 },
+    { market: "Howrah Mandi", km: 31, price: 3050 },
+    { market: "Behala Market", km: 24, price: 3000 },
+    { market: "Purulia Mandi", km: 290, price: 2600 },
+    { market: "Malda Mandi", km: 350, price: 2900 },
+    { market: "Darjeeling Market", km: 620, price: 2750 },
+    { market: "Haldia Market", km: 125, price: 3000 },
+  ],
+
+  Brinjal: [
+    { market: "Barasat Mandi", km: 3, price: 2400 },
+    { market: "Madhyamgram", km: 7, price: 2320 },
+    { market: "Basirhat", km: 18, price: 2500 },
+    { market: "Kolkata Wholesale", km: 26, price: 2620 },
+    { market: "Howrah Mandi", km: 31, price: 2550 },
+    { market: "Behala Market", km: 24, price: 2480 },
+    { market: "Purulia Mandi", km: 290, price: 2250 },
+    { market: "Malda Mandi", km: 350, price: 2450 },
+    { market: "Darjeeling Market", km: 620, price: 2380 },
+    { market: "Haldia Market", km: 125, price: 2520 },
+  ],
+
+  Carrot: [
+    { market: "Barasat Mandi", km: 3, price: 2600 },
+    { market: "Madhyamgram", km: 7, price: 2520 },
+    { market: "Basirhat", km: 18, price: 2700 },
+    { market: "Kolkata Wholesale", km: 26, price: 2850 },
+    { market: "Howrah Mandi", km: 31, price: 2780 },
+    { market: "Behala Market", km: 24, price: 2720 },
+    { market: "Purulia Mandi", km: 290, price: 2450 },
+    { market: "Malda Mandi", km: 350, price: 2680 },
+    { market: "Darjeeling Market", km: 620, price: 2550 },
+    { market: "Haldia Market", km: 125, price: 2750 },
+  ],
+
+  Cabbage: [
+    { market: "Barasat Mandi", km: 3, price: 1800 },
+    { market: "Madhyamgram", km: 7, price: 1750 },
+    { market: "Basirhat", km: 18, price: 1900 },
+    { market: "Kolkata Wholesale", km: 26, price: 2050 },
+    { market: "Howrah Mandi", km: 31, price: 1980 },
+    { market: "Behala Market", km: 24, price: 1940 },
+    { market: "Purulia Mandi", km: 290, price: 1680 },
+    { market: "Malda Mandi", km: 350, price: 1880 },
+    { market: "Darjeeling Market", km: 620, price: 1820 },
+    { market: "Haldia Market", km: 125, price: 1950 },
+  ],
+
+  Cauliflower: [
+    { market: "Barasat Mandi", km: 3, price: 2200 },
+    { market: "Madhyamgram", km: 7, price: 2140 },
+    { market: "Basirhat", km: 18, price: 2320 },
+    { market: "Kolkata Wholesale", km: 26, price: 2450 },
+    { market: "Howrah Mandi", km: 31, price: 2380 },
+    { market: "Behala Market", km: 24, price: 2350 },
+    { market: "Purulia Mandi", km: 290, price: 2050 },
+    { market: "Malda Mandi", km: 350, price: 2280 },
+    { market: "Darjeeling Market", km: 620, price: 2180 },
+    { market: "Haldia Market", km: 125, price: 2350 },
+  ],
+
+  Onion: [
+    { market: "Barasat Mandi", km: 3, price: 3000 },
+    { market: "Madhyamgram", km: 7, price: 2920 },
+    { market: "Basirhat", km: 18, price: 3150 },
+    { market: "Kolkata Wholesale", km: 26, price: 3300 },
+    { market: "Howrah Mandi", km: 31, price: 3250 },
+    { market: "Behala Market", km: 24, price: 3180 },
+    { market: "Purulia Mandi", km: 290, price: 2800 },
+    { market: "Malda Mandi", km: 350, price: 3100 },
+    { market: "Darjeeling Market", km: 620, price: 2950 },
+    { market: "Haldia Market", km: 125, price: 3200 },
+  ],
+
+  Garlic: [
+    { market: "Barasat Mandi", km: 3, price: 8500 },
+    { market: "Madhyamgram", km: 7, price: 8300 },
+    { market: "Basirhat", km: 18, price: 8800 },
+    { market: "Kolkata Wholesale", km: 26, price: 9200 },
+    { market: "Howrah Mandi", km: 31, price: 9000 },
+    { market: "Behala Market", km: 24, price: 8900 },
+    { market: "Purulia Mandi", km: 290, price: 8100 },
+    { market: "Malda Mandi", km: 350, price: 8700 },
+    { market: "Darjeeling Market", km: 620, price: 8400 },
+    { market: "Haldia Market", km: 125, price: 8950 },
+  ],
+
+  Chilli: [
+    { market: "Barasat Mandi", km: 3, price: 6200 },
+    { market: "Madhyamgram", km: 7, price: 6050 },
+    { market: "Basirhat", km: 18, price: 6500 },
+    { market: "Kolkata Wholesale", km: 26, price: 6800 },
+    { market: "Howrah Mandi", km: 31, price: 6650 },
+    { market: "Behala Market", km: 24, price: 6550 },
+    { market: "Purulia Mandi", km: 290, price: 5800 },
+    { market: "Malda Mandi", km: 350, price: 6400 },
+    { market: "Darjeeling Market", km: 620, price: 6150 },
+    { market: "Haldia Market", km: 125, price: 6600 },
+  ],
+
+  Cucumber: [
+    { market: "Barasat Mandi", km: 3, price: 2100 },
+    { market: "Madhyamgram", km: 7, price: 2020 },
+    { market: "Basirhat", km: 18, price: 2200 },
+    { market: "Kolkata Wholesale", km: 26, price: 2350 },
+    { market: "Howrah Mandi", km: 31, price: 2280 },
+    { market: "Behala Market", km: 24, price: 2220 },
+    { market: "Purulia Mandi", km: 290, price: 1950 },
+    { market: "Malda Mandi", km: 350, price: 2180 },
+    { market: "Darjeeling Market", km: 620, price: 2080 },
+    { market: "Haldia Market", km: 125, price: 2250 },
+  ],
+
+  Pumpkin: [
+    { market: "Barasat Mandi", km: 3, price: 1700 },
+    { market: "Madhyamgram", km: 7, price: 1640 },
+    { market: "Basirhat", km: 18, price: 1800 },
+    { market: "Kolkata Wholesale", km: 26, price: 1920 },
+    { market: "Howrah Mandi", km: 31, price: 1870 },
+    { market: "Behala Market", km: 24, price: 1830 },
+    { market: "Purulia Mandi", km: 290, price: 1550 },
+    { market: "Malda Mandi", km: 350, price: 1760 },
+    { market: "Darjeeling Market", km: 620, price: 1680 },
+    { market: "Haldia Market", km: 125, price: 1850 },
   ],
 };
 
@@ -918,7 +1082,7 @@ function PlanCard({ icon: Icon, color, title, body }) {
 
 function MandiView({ t }) {
   const [crop, setCrop] = useState(CROPS[0]);
-  const rows = MANDI_DATA[crop];
+  const rows = MANDI_DATA[crop] || MANDI_DATA.Potato;
 
   // Kolkata selected by default
   const defaultMarket =
