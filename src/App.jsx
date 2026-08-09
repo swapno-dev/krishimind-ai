@@ -393,42 +393,87 @@ export default function App() {
   --nav-bg: #1B241E;
 }
 
-.app,
-.app * {
-  transition:
-    background-color 0.25s ease,
-    color 0.25s ease,
-    border-color 0.25s ease;
-}
-        * { box-sizing: border-box; }
-        .display { font-family: 'Space Grotesk', 'Noto Sans Devanagari', 'Noto Sans Bengali', sans-serif; }
-        button { cursor: pointer; font-family: inherit; }
-        input, select { font-family: inherit; }
-      `}</style>
+<style>{`
+  .app,
+  .app * {
+    transition:
+      background-color 0.25s ease,
+      color 0.25s ease,
+      border-color 0.25s ease;
+  }
 
-      <TopBar
-  t={t}
-  lang={lang}
-  setLang={setLang}
-  darkMode={darkMode}
-  setDarkMode={setDarkMode}
-/>
+  /* =========================
+     DARK MODE — GLOBAL FIXES
+     ========================= */
 
-      <div style={{ display: "flex", maxWidth: 1180, margin: "0 auto" }}>
-        <SideNav t={t} tab={tab} setTab={setTab} />
-        <main style={{ flex: 1, padding: "28px 24px 60px", minWidth: 0 }}>
-          {tab === "home" && <HomeView t={t} setTab={setTab} lang={lang} />}
-          {tab === "doctor" && <DoctorView t={t} />}
-          {tab === "advisory" && <AdvisoryView t={t} />}
-          {tab === "mandi" && <MandiView t={t} />}
-          {tab === "assistant" && <AssistantView t={t} />}
-        </main>
-      </div>
+  .dark-mode [style*="background: rgb(255, 255, 255)"] {
+    background: var(--card) !important;
+  }
 
-      <MobileTabBar t={t} tab={tab} setTab={setTab} />
-    </div>
-  );
-}
+  .dark-mode [style*="background: rgb(248, 246, 239)"] {
+    background: #202B23 !important;
+  }
+
+  .dark-mode [style*="background: rgb(250, 246, 238)"] {
+    background: var(--cream) !important;
+  }
+
+  .dark-mode [style*="background: rgb(231, 239, 227)"] {
+    background: var(--leaf-light) !important;
+  }
+
+  .dark-mode [style*="border: 1px solid rgb(236, 231, 216)"] {
+    border-color: var(--border) !important;
+  }
+
+  .dark-mode [style*="border-bottom: 1px solid rgb(240, 236, 223)"] {
+    border-bottom-color: var(--line) !important;
+  }
+
+  .dark-mode [style*="color: rgb(31, 61, 43)"] {
+    color: var(--forest) !important;
+  }
+
+  .dark-mode [style*="color: rgb(91, 107, 93)"] {
+    color: var(--muted) !important;
+  }
+
+  .dark-mode [style*="color: rgb(138, 147, 137)"] {
+    color: var(--muted-light) !important;
+  }
+
+  .dark-mode .recharts-cartesian-grid line {
+    stroke: #344239 !important;
+  }
+
+  .dark-mode .recharts-text {
+    fill: #B7C5B8 !important;
+  }
+
+  .dark-mode .recharts-default-tooltip {
+    background: #1B241E !important;
+    border-color: #344239 !important;
+    color: #EAF3E8 !important;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  .display {
+    font-family: 'Space Grotesk', 'Noto Sans Devanagari', 'Noto Sans Bengali', sans-serif;
+  }
+
+  button {
+    cursor: pointer;
+    font-family: inherit;
+  }
+
+  input,
+  select {
+    font-family: inherit;
+  }
+`}</style>
 
 /* ---------------------------------- top bar ---------------------------------- */
 
