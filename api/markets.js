@@ -1,19 +1,12 @@
 const MARKET_LOCATIONS = [
-  { market: "Barasat Mandi", km: 3, multiplier: 1.00 },
-  { market: "Madhyamgram", km: 7, multiplier: 0.98 },
-  { market: "Basirhat", km: 18, multiplier: 1.04 },
+  { market: "Haldia Market", km: 125, multiplier: 1.06 },
   { market: "Kolkata Wholesale", km: 26, multiplier: 1.07 },
   { market: "Howrah Mandi", km: 31, multiplier: 1.05 },
+  { market: "Basirhat", km: 18, multiplier: 1.04 },
   { market: "Behala Market", km: 24, multiplier: 1.02 },
-  { market: "Purulia Mandi", km: 290, multiplier: 0.97 },
-  { market: "Malda Mandi", km: 350, multiplier: 1.03 },
-  { market: "Darjeeling Market", km: 620, multiplier: 1.01 },
-  { market: "Haldia Market", km: 125, multiplier: 1.06 },
-  { market: "Siliguri Mandi", km: 560, multiplier: 1.04 },
-  { market: "Durgapur Mandi", km: 185, multiplier: 1.00 },
-  { market: "Kharagpur Mandi", km: 120, multiplier: 1.02 },
-  { market: "Burdwan Mandi", km: 105, multiplier: 1.03 },
-  { market: "Krishnanagar Mandi", km: 110, multiplier: 1.01 }
+  { market: "Purulia Market", km: 290, multiplier: 0.97 },
+  { market: "Barasat Mandi", km: 3, multiplier: 1.00 },
+  { market: "Madhyamgram", km: 7, multiplier: 0.98 }
 ];
 
 const BASE_PRICES = {
@@ -38,12 +31,15 @@ const BASE_PRICES = {
 export default function handler(req, res) {
   const crop = req.query.crop || "Potato";
 
-  const basePrice = BASE_PRICES[crop] || BASE_PRICES.Potato;
+  const basePrice =
+    BASE_PRICES[crop] || BASE_PRICES.Potato;
 
   const markets = MARKET_LOCATIONS.map((location) => ({
     market: location.market,
     km: location.km,
-    price: Math.round(basePrice * location.multiplier)
+    price: Math.round(
+      basePrice * location.multiplier
+    )
   }));
 
   const recommended = [...markets].sort(
