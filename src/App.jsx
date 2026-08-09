@@ -1896,6 +1896,8 @@ function AssistantView({ t, lang }) {
   ]);
 
   const [input, setInput] = useState("");
+  const [isListening, setIsListening] = useState(false);
+  const recognitionRef = useRef(null);
   const lastCropRef = useRef(null);
   const responseCountRef = useRef(0);
 
@@ -1926,6 +1928,72 @@ function AssistantView({ t, lang }) {
         { from: "bot", text: result.text },
       ]);
     }, 450);
+  };
+
+  const startVoiceInput = () => {
+    const SpeechRecognition =
+      window.SpeechRecognition ||
+      window.webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+      alert(
+        "Voice input is not supported in this browser. Please use Chrome or Edge."
+      );
+      return;
+    }
+
+    if (recognitionRef.current && isListening) {
+      recognitionRef.current.stop();
+      return;
+    }
+
+    const recognition = new SpeechRecognition();
+
+    recognition.lang =
+      lang === "hi"
+        ? "hi-IN"
+        : lang === "bn"
+        ? "bn-IN"
+        : "en-IN";
+
+    recognition.continuous = false;
+    recognition.interimResults = true;
+    recognition.maxAlternatives = 1;
+
+    recognition.onstart = () => {
+      setIsListening(true);
+    };
+
+    recognition.onresult = (event) => {
+      let transcript = "";
+
+      for (
+        let i = event.resultIndex;
+        i < event.results.length;
+        i++
+      ) {
+        transcript += event.results[i][0].transcript;
+      }
+
+      setInput(transcript);
+    };
+
+    recognition.onerror = (event) => {
+      console.error(
+        "Speech recognition error:",
+        event.error
+      );
+
+      setIsListening(false);
+    };
+
+    recognition.onend = () => {
+      setIsListening(false);
+      recognitionRef.current = null;
+    };
+
+    recognitionRef.current = recognition;
+    recognition.start();
   };
 
   return (
@@ -2032,21 +2100,27 @@ function AssistantView({ t, lang }) {
           }}
         >
           <button
-            style={{
-              width: 40,
-              height: 40,
-              borderRadius: 10,
-              border: "1px solid #DCD5C2",
-              background: "#fff",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              flexShrink: 0,
-            }}
-            title="Voice input (demo)"
-          >
-            <Mic size={17} color="var(--leaf)" />
-          </button>
+  onClick={startVoiceInput}
+  style={{
+    width: 40,
+    height: 40,
+    borderRadius: 10,
+    border: isListening
+      ? "2px solid var(--leaf)"
+      : "1px solid #DCD5C2",
+    background: isListening
+      ? "var(--leaf-light)"
+      : "#fff",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    flexShrink: 0,
+    cursor: "pointer",
+  }}
+  title={isListening ? "Stop listening" : "Speak your question"}
+>
+  <Mic size={17} color="var(--leaf)" />
+</button>
 
           <input
             value={input}
