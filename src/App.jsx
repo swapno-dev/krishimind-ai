@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from "react";
+import React, { useState, useRef, useCallback, useEffect } from "react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import {
   Sprout, Leaf, CloudRain, Camera, MessageCircle, TrendingUp,
@@ -438,35 +438,206 @@ function SectionHeader({ title, sub }) {
 /* ---------------------------------- home ---------------------------------- */
 
 function HomeView({ t, setTab, lang }) {
+  const [weather, setWeather] = useState({
+    temperature: null,
+    humidity: null,
+    wind_speed: null,
+    rain_probability: null,
+  });
+
+  const fetchWeather = useCallback(async () => {
+    try {
+      const response = await fetch("/api/weather?location=Kolkata");
+
+      if (!response.ok) {
+        throw new Error("Weather request failed");
+      }
+
+      const data = await response.json();
+
+      setWeather({
+        temperature: data.temperature,
+        humidity: data.humidity,
+        wind_speed: data.wind_speed,
+        rain_probability: data.rain_probability,
+      });
+    } catch (error) {
+      console.error("Weather fetch error:", error);
+    }
+  }, []);
+
+  useEffect(() => {
+    // Fetch immediately when dashboard loads
+    fetchWeather();
+
+    // Refresh weather every 15 minutes
+    const interval = setInterval(fetchWeather, 15 * 60 * 1000);
+
+    return () => clearInterval(interval);
+  }, [fetchWeather]);
+
+  const temperature =
+    weather.temperature !== null
+      ? `${Math.round(weather.temperature)}°C`
+      : "--";
+
+  const humidity =
+    weather.humidity !== null
+      ? `${Math.round(weather.humidity)}%`
+      : "--";
+
+  const wind =
+    weather.wind_speed !== null
+      ? `${Math.round(weather.wind_speed)} km/h`
+      : "--";
+
+  const rain =
+    weather.rain_probability !== null
+      ? `${Math.round(weather.rain_probability)}%`
+      : "--";
+
   return (
     <div style={{ paddingBottom: 40 }}>
-      <div style={{
-        background: "linear-gradient(135deg, var(--forest), #2C5238)", borderRadius: 18, padding: "26px 24px",
-        color: "#fff", marginBottom: 22, position: "relative", overflow: "hidden",
-      }}>
-        <Sun size={90} style={{ position: "absolute", right: -10, top: -20, color: "rgba(227,167,58,0.25)" }} />
-        <div style={{ fontSize: 13, color: "#C9D9C7", fontWeight: 600, letterSpacing: 0.4 }}>{t.weatherNote}</div>
-        <h1 className="display" style={{ fontSize: 26, margin: "6px 0 14px" }}>{t.greeting}</h1>
-        <div style={{ display: "flex", gap: 22, flexWrap: "wrap" }}>
-          <WeatherStat icon={Sun} label="32°C" sub="Clear" />
-          <WeatherStat icon={Droplets} label="64%" sub="Humidity" />
-          <WeatherStat icon={Wind} label="11 km/h" sub="Wind" />
-          <WeatherStat icon={CloudRain} label="Low" sub="Rain (48h)" />
+      <div
+        style={{
+          background: "linear-gradient(135deg, var(--forest), #2C5238)",
+          borderRadius: 18,
+          padding: "26px 24px",
+          color: "#fff",
+          marginBottom: 22,
+          position: "relative",
+          overflow: "hidden",
+        }}
+      >
+        <Sun
+          size={90}
+          style={{
+            position: "absolute",
+            right: -10,
+            top: -20,
+            color: "rgba(227,167,58,0.25)",
+          }}
+        />
+
+        <div
+          style={{
+            fontSize: 13,
+            color: "#C9D9C7",
+            fontWeight: 600,
+            letterSpacing: 0.4,
+          }}
+        >
+          {t.weatherNote}
+        </div>
+
+        <h1
+          className="display"
+          style={{ fontSize: 26, margin: "6px 0 14px" }}
+        >
+          {t.greeting}
+        </h1>
+
+        <div
+          style={{
+            display: "flex",
+            gap: 22,
+            flexWrap: "wrap",
+          }}
+        >
+          <WeatherStat
+            icon={Sun}
+            label={temperature}
+            sub="Temperature"
+          />
+
+          <WeatherStat
+            icon={Droplets}
+            label={humidity}
+            sub="Humidity"
+          />
+
+          <WeatherStat
+            icon={Wind}
+            label={wind}
+            sub="Wind"
+          />
+
+          <WeatherStat
+            icon={CloudRain}
+            label={rain}
+            sub="Rain chance"
+          />
         </div>
       </div>
 
       <SectionHeader title={t.quickStats} />
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 14, marginBottom: 30 }}>
-        <StatCard icon={Sprout} label={t.activeCrop} value="Potato — Flowering" color="var(--leaf)" />
-        <StatCard icon={Droplets} label={t.nextTask} value="Irrigate in 2 days" color="var(--sky)" />
-        <StatCard icon={TrendingUp} label={t.marketTip} value="Kolkata Wholesale +₹140/qtl" color="var(--wheat)" />
+
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns:
+            "repeat(auto-fit, minmax(200px, 1fr))",
+          gap: 14,
+          marginBottom: 30,
+        }}
+      >
+        <StatCard
+          icon={Sprout}
+          label={t.activeCrop}
+          value="Potato — Flowering"
+          color="var(--leaf)"
+        />
+
+        <StatCard
+          icon={Droplets}
+          label={t.nextTask}
+          value="Irrigate in 2 days"
+          color="var(--sky)"
+        />
+
+        <StatCard
+          icon={TrendingUp}
+          label={t.marketTip}
+          value="Kolkata Wholesale +₹140/qtl"
+          color="var(--wheat)"
+        />
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 14 }}>
-        <NavTile icon={Leaf} title={t.doctorTitle} desc={t.doctorSub} onClick={() => setTab("doctor")} />
-        <NavTile icon={Droplets} title={t.advisoryTitle} desc={t.advisorySub} onClick={() => setTab("advisory")} />
-        <NavTile icon={TrendingUp} title={t.mandiTitle} desc={t.mandiSub} onClick={() => setTab("mandi")} />
-        <NavTile icon={MessageCircle} title={t.assistantTitle} desc={t.assistantSub} onClick={() => setTab("assistant")} />
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns:
+            "repeat(auto-fit, minmax(240px, 1fr))",
+          gap: 14,
+        }}
+      >
+        <NavTile
+          icon={Leaf}
+          title={t.doctorTitle}
+          desc={t.doctorSub}
+          onClick={() => setTab("doctor")}
+        />
+
+        <NavTile
+          icon={Droplets}
+          title={t.advisoryTitle}
+          desc={t.advisorySub}
+          onClick={() => setTab("advisory")}
+        />
+
+        <NavTile
+          icon={TrendingUp}
+          title={t.mandiTitle}
+          desc={t.mandiSub}
+          onClick={() => setTab("mandi")}
+        />
+
+        <NavTile
+          icon={MessageCircle}
+          title={t.assistantTitle}
+          desc={t.assistantSub}
+          onClick={() => setTab("assistant")}
+        />
       </div>
     </div>
   );
