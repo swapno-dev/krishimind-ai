@@ -917,7 +917,7 @@ function DoctorView({ t }) {
     Severity: {result.severity}
   </span>
 </div>
-</div>
+
                 </div>
                 <div style={{ height: 6, background: "#EEE9DA", borderRadius: 4, marginBottom: 18, overflow: "hidden" }}>
                   <div style={{ height: "100%", width: `${result.conf}%`, background: a.color, borderRadius: 4 }} />
