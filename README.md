@@ -1,5 +1,23 @@
 # KrishiMind AI
 
+Smart agricultural decision-support platform for smallholder farmers.
+
+## Features
+- 🌱 Crop Doctor for crop health and symptom-based guidance
+- 💧 Water & Feed Plan for irrigation and fertilizer recommendations
+- 🌦️ Weather information with automatic updates
+- 📈 Mandi Prices for comparing nearby markets
+- 🤖 Ask KrishiMind for structured crop-specific assistance
+- 🎙️ Voice input and multilingual support
+
+## Run locally
+
+```bash
+npm install
+npm run dev
+
+# KrishiMind AI
+
 ## Run locally
 ```
 npm install
