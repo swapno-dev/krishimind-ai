@@ -394,6 +394,14 @@ export default function App() {
 }
 
 <style>{`
+  :root {
+    /* your existing variables */
+  }
+
+  .dark-mode {
+    /* your existing dark mode variables */
+  }
+
   .app,
   .app * {
     transition:
@@ -461,7 +469,8 @@ export default function App() {
   }
 
   .display {
-    font-family: 'Space Grotesk', 'Noto Sans Devanagari', 'Noto Sans Bengali', sans-serif;
+    font-family: 'Space Grotesk', 'Noto Sans Devanagari',
+      'Noto Sans Bengali', sans-serif;
   }
 
   button {
