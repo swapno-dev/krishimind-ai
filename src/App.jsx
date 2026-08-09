@@ -1192,66 +1192,312 @@ function PlanCard({ icon: Icon, color, title, body }) {
 
 function MandiView({ t }) {
   const [crop, setCrop] = useState(CROPS[0]);
+
   const rows = MANDI_DATA[crop];
-  const best = rows.reduce((a, b) => (b.price > a.price ? b : a));
-  const trend = trendFor(best.price);
+
+  // Best market for the top price card
+  const best = rows.reduce(
+    (a, b) => (b.price > a.price ? b : a)
+  );
+
+  // Market currently selected for the graph
+  const [selectedMarket, setSelectedMarket] = useState(
+    best.market
+  );
+
+  // Find the selected market
+  const selectedRow =
+    rows.find((r) => r.market === selectedMarket) || best;
+
+  // Graph is now based on the SELECTED market
+  const trend = trendFor(selectedRow.price);
+
+  const handleCropChange = (nextCrop) => {
+    setCrop(nextCrop);
+
+    const nextRows = MANDI_DATA[nextCrop];
+
+    // Try to keep the same market when switching crops
+    const sameMarket = nextRows.find(
+      (r) => r.market === selectedMarket
+    );
+
+    if (sameMarket) {
+      setSelectedMarket(sameMarket.market);
+    } else {
+      const nextBest = nextRows.reduce(
+        (a, b) => (b.price > a.price ? b : a)
+      );
+
+      setSelectedMarket(nextBest.market);
+    }
+  };
 
   return (
     <div>
-      <SectionHeader title={t.mandiTitle} sub={t.mandiSub} />
-      <div style={{ display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap" }}>
+      <SectionHeader
+        title={t.mandiTitle}
+        sub={t.mandiSub}
+      />
+
+      {/* Crop buttons */}
+      <div
+        style={{
+          display: "flex",
+          gap: 8,
+          marginBottom: 20,
+          flexWrap: "wrap",
+        }}
+      >
         {CROPS.map((c) => (
-          <button key={c} onClick={() => setCrop(c)} style={{
-            padding: "8px 16px", borderRadius: 999, border: "1px solid " + (crop === c ? "var(--forest)" : "#DCD5C2"),
-            background: crop === c ? "var(--forest)" : "#fff", color: crop === c ? "#fff" : "var(--forest)",
-            fontWeight: 600, fontSize: 13,
-          }}>{c}</button>
+          <button
+            key={c}
+            onClick={() => handleCropChange(c)}
+            style={{
+              padding: "8px 16px",
+              borderRadius: 999,
+              border:
+                "1px solid " +
+                (crop === c
+                  ? "var(--forest)"
+                  : "#DCD5C2"),
+              background:
+                crop === c
+                  ? "var(--forest)"
+                  : "#fff",
+              color:
+                crop === c
+                  ? "#fff"
+                  : "var(--forest)",
+              fontWeight: 600,
+              fontSize: 13,
+            }}
+          >
+            {c}
+          </button>
         ))}
       </div>
 
-      <div style={{
-        background: "linear-gradient(135deg, var(--wheat), #D68F2A)", borderRadius: 16, padding: 20, marginBottom: 20,
-        color: "#3A2A0E", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12,
-      }}>
+      {/* Best price card */}
+      <div
+        style={{
+          background:
+            "linear-gradient(135deg, var(--wheat), #D68F2A)",
+          borderRadius: 16,
+          padding: 20,
+          marginBottom: 20,
+          color: "#3A2A0E",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          flexWrap: "wrap",
+          gap: 12,
+        }}
+      >
         <div>
-          <div style={{ fontSize: 12.5, fontWeight: 700, opacity: 0.8 }}>{t.bestPrice}</div>
-          <div className="display" style={{ fontSize: 26, fontWeight: 700 }}>₹{best.price} <span style={{ fontSize: 14, fontWeight: 600 }}>{t.perQuintal}</span></div>
+          <div
+            style={{
+              fontSize: 12.5,
+              fontWeight: 700,
+              opacity: 0.8,
+            }}
+          >
+            {t.bestPrice}
+          </div>
+
+          <div
+            className="display"
+            style={{
+              fontSize: 26,
+              fontWeight: 700,
+            }}
+          >
+            ₹{best.price}{" "}
+            <span
+              style={{
+                fontSize: 14,
+                fontWeight: 600,
+              }}
+            >
+              {t.perQuintal}
+            </span>
+          </div>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 6, fontWeight: 700, fontSize: 13.5 }}>
-          <MapPin size={16} /> {best.market} · {best.km} km {t.distance}
+
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 6,
+            fontWeight: 700,
+            fontSize: 13.5,
+          }}
+        >
+          <MapPin size={16} />
+          {best.market} · {best.km} km {t.distance}
         </div>
       </div>
 
-      <div style={{ background: "#fff", border: "1px solid #ECE7D8", borderRadius: 16, padding: "18px 18px 8px", marginBottom: 20 }}>
-        <div style={{ fontSize: 13, fontWeight: 700, color: "#5B6B5D", marginBottom: 10 }}>{t.trend} — {crop}</div>
-        <ResponsiveContainer width="100%" height={180}>
-          <LineChart data={trend} margin={{ left: -20, right: 10 }}>
-            <CartesianGrid stroke="#F0ECDF" vertical={false} />
-            <XAxis dataKey="day" tick={{ fontSize: 11, fill: "#9AA69B" }} axisLine={false} tickLine={false} />
-            <YAxis tick={{ fontSize: 11, fill: "#9AA69B" }} axisLine={false} tickLine={false} domain={["dataMin - 50", "dataMax + 50"]} />
-            <Tooltip contentStyle={{ borderRadius: 10, border: "1px solid #ECE7D8", fontSize: 12 }} />
-            <Line type="monotone" dataKey="price" stroke="#4C7A51" strokeWidth={2.5} dot={{ r: 3 }} />
+      {/* Selected market graph */}
+      <div
+        style={{
+          background: "#fff",
+          border: "1px solid #ECE7D8",
+          borderRadius: 16,
+          padding: "18px 18px 8px",
+          marginBottom: 20,
+        }}
+      >
+        <div
+          style={{
+            fontSize: 13,
+            fontWeight: 700,
+            color: "#5B6B5D",
+            marginBottom: 10,
+          }}
+        >
+          {t.trend} — {selectedRow.market}
+        </div>
+
+        <ResponsiveContainer
+          width="100%"
+          height={180}
+        >
+          <LineChart
+            data={trend}
+            margin={{
+              left: -20,
+              right: 10,
+            }}
+          >
+            <CartesianGrid
+              stroke="#F0ECDF"
+              vertical={false}
+            />
+
+            <XAxis
+              dataKey="day"
+              tick={{
+                fontSize: 11,
+                fill: "#9AA69B",
+              }}
+              axisLine={false}
+              tickLine={false}
+            />
+
+            <YAxis
+              tick={{
+                fontSize: 11,
+                fill: "#9AA69B",
+              }}
+              axisLine={false}
+              tickLine={false}
+              domain={[
+                "dataMin - 50",
+                "dataMax + 50",
+              ]}
+            />
+
+            <Tooltip
+              contentStyle={{
+                borderRadius: 10,
+                border: "1px solid #ECE7D8",
+                fontSize: 12,
+              }}
+            />
+
+            <Line
+              type="monotone"
+              dataKey="price"
+              stroke="#4C7A51"
+              strokeWidth={2.5}
+              dot={{ r: 3 }}
+            />
           </LineChart>
         </ResponsiveContainer>
       </div>
 
-      <div style={{ background: "#fff", border: "1px solid #ECE7D8", borderRadius: 16, overflow: "hidden" }}>
-        {rows.sort((a, b) => b.price - a.price).map((r, i) => (
-          <div key={r.market} style={{
-            display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 18px",
-            borderBottom: i < rows.length - 1 ? "1px solid #F0ECDF" : "none",
-            background: r.market === best.market ? "var(--leaf-light)" : "transparent",
-          }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <MapPin size={15} color="#8A9389" />
-              <div>
-                <div style={{ fontWeight: 600, fontSize: 14, color: "var(--forest)" }}>{r.market}</div>
-                <div style={{ fontSize: 11.5, color: "#9AA69B" }}>{r.km} km {t.distance}</div>
+      {/* Market list */}
+      <div
+        style={{
+          background: "#fff",
+          border: "1px solid #ECE7D8",
+          borderRadius: 16,
+          overflow: "hidden",
+        }}
+      >
+        {[...rows]
+          .sort((a, b) => b.price - a.price)
+          .map((r, i) => (
+            <button
+              key={r.market}
+              onClick={() =>
+                setSelectedMarket(r.market)
+              }
+              style={{
+                width: "100%",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                padding: "14px 18px",
+                border: "none",
+                borderBottom:
+                  i < rows.length - 1
+                    ? "1px solid #F0ECDF"
+                    : "none",
+                background:
+                  r.market === selectedMarket
+                    ? "var(--leaf-light)"
+                    : "#fff",
+                cursor: "pointer",
+                textAlign: "left",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 10,
+                }}
+              >
+                <MapPin
+                  size={15}
+                  color="#8A9389"
+                />
+
+                <div>
+                  <div
+                    style={{
+                      fontWeight: 600,
+                      fontSize: 14,
+                      color: "var(--forest)",
+                    }}
+                  >
+                    {r.market}
+                  </div>
+
+                  <div
+                    style={{
+                      fontSize: 11.5,
+                      color: "#9AA69B",
+                    }}
+                  >
+                    {r.km} km {t.distance}
+                  </div>
+                </div>
               </div>
-            </div>
-            <div style={{ fontWeight: 700, fontSize: 15, color: "var(--forest)" }}>₹{r.price}</div>
-          </div>
-        ))}
+
+              <div
+                style={{
+                  fontWeight: 700,
+                  fontSize: 15,
+                  color: "var(--forest)",
+                }}
+              >
+                ₹{r.price}
+              </div>
+            </button>
+          ))}
       </div>
     </div>
   );
