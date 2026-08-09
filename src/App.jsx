@@ -392,6 +392,7 @@ export default function App() {
   --line: #2A352D;
   --nav-bg: #1B241E;
 }
+`}</style>
 
 <style>{`
   :root {
