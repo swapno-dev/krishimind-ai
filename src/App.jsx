@@ -344,147 +344,49 @@ export default function App() {
 
   return (
     <div
-  className={darkMode ? "app dark-mode" : "app"}
-  style={{
-    fontFamily: "'Inter', sans-serif",
-    background: "var(--cream)",
-    minHeight: "100vh",
-    color: "var(--forest)",
-    transition: "background 0.25s ease, color 0.25s ease",
-  }}
->
-      <style>{`
+      className={darkMode ? "app dark-mode" : "app"}
+      style={{
+        fontFamily: "'Inter', sans-serif",
+        background: "var(--cream)",
+        minHeight: "100vh",
+        color: "var(--forest)",
+        transition: "background 0.25s ease, color 0.25s ease",
+      }}
+    >
+           <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=Noto+Sans+Devanagari:wght@500;600&family=Noto+Sans+Bengali:wght@500;600&display=swap');
+
         :root {
-  --forest: #1F3D2B;
-  --leaf: #4C7A51;
-  --leaf-light: #E7EFE3;
-  --soil: #8B5E3C;
-  --wheat: #E3A73A;
-  --cream: #FAF6EE;
-  --sky: #3E7C8A;
-  --sky-light: #E2EFF1;
-  --danger: #B5502F;
+          --forest: #1F3D2B;
+          --leaf: #4C7A51;
+          --leaf-light: #E7EFE3;
+          --soil: #8B5E3C;
+          --wheat: #E3A73A;
+          --cream: #FAF6EE;
+          --sky: #3E7C8A;
+          --sky-light: #E2EFF1;
+          --danger: #B5502F;
+        }
 
-  --card: #FFFFFF;
-  --border: #ECE7D8;
-  --muted: #5B6B5D;
-  --muted-light: #8A9389;
-  --line: #F0ECDF;
-  --nav-bg: #FFFFFF;
-}
+        .dark-mode {
+          --forest: #EAF3E8;
+          --cream: #121814;
+        }
 
-.dark-mode {
-  --forest: #EAF3E8;
-  --leaf: #79B97A;
-  --leaf-light: #243A2B;
-  --soil: #C98A62;
-  --wheat: #E3A73A;
-  --cream: #121814;
-  --sky: #70B7C4;
-  --sky-light: #1D3238;
-  --danger: #E07A5F;
+        * {
+          box-sizing: border-box;
+        }
 
-  --card: #1B241E;
-  --border: #344239;
-  --muted: #B7C5B8;
-  --muted-light: #8F9C90;
-  --line: #2A352D;
-  --nav-bg: #1B241E;
-}
-`}</style>
+        button {
+          cursor: pointer;
+          font-family: inherit;
+        }
 
-<style>{`
-  :root {
-    /* your existing variables */
-  }
-
-  .dark-mode {
-    /* your existing dark mode variables */
-  }
-
-  .app,
-  .app * {
-    transition:
-      background-color 0.25s ease,
-      color 0.25s ease,
-      border-color 0.25s ease;
-  }
-
-  /* =========================
-     DARK MODE — GLOBAL FIXES
-     ========================= */
-
-  .dark-mode [style*="background: rgb(255, 255, 255)"] {
-    background: var(--card) !important;
-  }
-
-  .dark-mode [style*="background: rgb(248, 246, 239)"] {
-    background: #202B23 !important;
-  }
-
-  .dark-mode [style*="background: rgb(250, 246, 238)"] {
-    background: var(--cream) !important;
-  }
-
-  .dark-mode [style*="background: rgb(231, 239, 227)"] {
-    background: var(--leaf-light) !important;
-  }
-
-  .dark-mode [style*="border: 1px solid rgb(236, 231, 216)"] {
-    border-color: var(--border) !important;
-  }
-
-  .dark-mode [style*="border-bottom: 1px solid rgb(240, 236, 223)"] {
-    border-bottom-color: var(--line) !important;
-  }
-
-  .dark-mode [style*="color: rgb(31, 61, 43)"] {
-    color: var(--forest) !important;
-  }
-
-  .dark-mode [style*="color: rgb(91, 107, 93)"] {
-    color: var(--muted) !important;
-  }
-
-  .dark-mode [style*="color: rgb(138, 147, 137)"] {
-    color: var(--muted-light) !important;
-  }
-
-  .dark-mode .recharts-cartesian-grid line {
-    stroke: #344239 !important;
-  }
-
-  .dark-mode .recharts-text {
-    fill: #B7C5B8 !important;
-  }
-
-  .dark-mode .recharts-default-tooltip {
-    background: #1B241E !important;
-    border-color: #344239 !important;
-    color: #EAF3E8 !important;
-  }
-
-  * {
-    box-sizing: border-box;
-  }
-
-  .display {
-    font-family: 'Space Grotesk', 'Noto Sans Devanagari',
-      'Noto Sans Bengali', sans-serif;
-  }
-
-  button {
-    cursor: pointer;
-    font-family: inherit;
-  }
-
-  input,
-  select {
-    font-family: inherit;
-  }
-`}</style>
-
+        input,
+        select {
+          font-family: inherit;
+        }
+      `}</style>
 /* ---------------------------------- top bar ---------------------------------- */
 
 function TopBar({
