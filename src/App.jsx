@@ -299,7 +299,7 @@ export default function App() {
           {tab === "doctor" && <DoctorView t={t} />}
           {tab === "advisory" && <AdvisoryView t={t} />}
           {tab === "mandi" && <MandiView t={t} />}
-          {tab === "assistant" && <AssistantView t={t} />}
+          {tab === "assistant" && <AssistantView t={t} lang={lang} />}
         </main>
       </div>
 
@@ -1088,95 +1088,996 @@ function MandiView({ t }) {
 
 /* ---------------------------------- assistant ---------------------------------- */
 
-const CANNED = {
-  irrigate: {
-    en: "For most crops, irrigate when the top 3–5 cm of soil feels dry. Check the Water & Feed Plan tab for a schedule tuned to your soil and crop stage.",
-    hi: "ज़्यादातर फसलों में जब ऊपरी 3–5 सेमी मिट्टी सूखी लगे तब सिंचाई करें। सटीक योजना के लिए 'पानी व खाद योजना' टैब देखें।",
-    bn: "বেশিরভাগ ফসলে মাটির উপরের ৩–৫ সেমি শুকিয়ে গেলে সেচ দিন। সঠিক পরিকল্পনার জন্য 'জল ও সার পরিকল্পনা' ট্যাব দেখুন।",
+const CROP_PROFILES = {
+  rice: {
+    names: ["rice", "paddy", "धान", "चावल", "ধান"],
+    label: { en: "Rice", hi: "धान", bn: "ধান" },
+    irrigation: {
+      en: "Keep the field evenly moist, especially during active growth. Avoid letting the soil stay continuously flooded unless the crop stage and local practice call for it.",
+      hi: "सक्रिय बढ़वार के दौरान खेत में पर्याप्त नमी रखें। लगातार पानी भरा रखने से बचें, जब तक फसल की अवस्था और स्थानीय पद्धति इसकी मांग न करे।",
+      bn: "সক্রিয় বৃদ্ধির সময় জমিতে পর্যাপ্ত আর্দ্রতা রাখুন। ফসলের পর্যায় ও স্থানীয় পদ্ধতি অনুযায়ী প্রয়োজন না হলে সবসময় জল জমিয়ে রাখবেন না।",
+    },
+    fertilizer: {
+      en: "Rice generally benefits from split nitrogen applications rather than applying all nitrogen at once. Potassium and phosphorus should be guided by soil condition and the crop stage.",
+      hi: "धान में पूरी नाइट्रोजन एक साथ देने के बजाय विभाजित मात्रा में देना बेहतर रहता है। पोटाश और फॉस्फोरस की मात्रा मिट्टी और फसल की अवस्था के अनुसार तय करें।",
+      bn: "ধানের ক্ষেত্রে একবারে সব নাইট্রোজেন না দিয়ে ভাগ করে প্রয়োগ করা ভালো। পটাশ ও ফসফরাসের পরিমাণ মাটির অবস্থা ও ফসলের পর্যায় অনুযায়ী ঠিক করুন।",
+    },
+    pest: {
+      en: "Watch for stem borer, leaf folder and planthoppers. Check the crop regularly instead of waiting until damage becomes widespread.",
+      hi: "तना छेदक, लीफ फोल्डर और प्लांटहॉपर पर नजर रखें। नुकसान फैलने के बाद नहीं, नियमित रूप से खेत की जांच करें।",
+      bn: "স্টেম বোরার, লিফ ফোল্ডার ও প্ল্যান্টহপার নজরে রাখুন। ক্ষতি ছড়িয়ে পড়ার আগে নিয়মিত জমি পরীক্ষা করুন।",
+    },
+    disease: {
+      en: "During humid or wet periods, inspect leaves and stems for unusual spots, discoloration and lesions. Good field drainage and regular scouting are important.",
+      hi: "नमी या बारिश वाले समय में पत्तियों और तनों पर असामान्य धब्बे और घाव देखें। अच्छी जल निकासी और नियमित निगरानी जरूरी है।",
+      bn: "আর্দ্র বা বৃষ্টির সময় পাতায় ও কাণ্ডে অস্বাভাবিক দাগ ও ক্ষত দেখুন। ভালো জল নিষ্কাশন ও নিয়মিত পর্যবেক্ষণ গুরুত্বপূর্ণ।",
+    },
   },
-  fertilizer: {
-    en: "For potato, a balanced NPK basal dose at planting followed by a Potash top-up at tuber initiation works well. See the advisory tab for your exact stage.",
-    hi: "आलू के लिए बुवाई के समय संतुलित NPK और कंद बनने पर पोटाश टॉप-अप अच्छा काम करता है। सटीक जानकारी के लिए सलाह टैब देखें।",
-    bn: "আলুর জন্য রোপণের সময় সুষম NPK এবং কন্দ তৈরির সময় পটাশ টপ-আপ ভালো কাজ করে। বিস্তারিত জানতে পরামর্শ ট্যাব দেখুন।",
+
+  wheat: {
+    names: ["wheat", "गेहूं", "गेहूँ", "গম"],
+    label: { en: "Wheat", hi: "गेहूं", bn: "গম" },
+    irrigation: {
+      en: "Do not irrigate simply by calendar date. Check soil moisture and pay particular attention around important growth stages such as crown-root development and grain filling.",
+      hi: "सिर्फ कैलेंडर देखकर सिंचाई न करें। मिट्टी की नमी जांचें और महत्वपूर्ण अवस्थाओं, जैसे जड़ विकास और दाना भरने, पर विशेष ध्यान दें।",
+      bn: "শুধু ক্যালেন্ডার দেখে সেচ দেবেন না। মাটির আর্দ্রতা দেখুন এবং শিকড়ের বৃদ্ধি ও দানা ভরার মতো গুরুত্বপূর্ণ পর্যায়ে বিশেষ নজর দিন।",
+    },
+    fertilizer: {
+      en: "Nitrogen is usually most useful when supplied in split applications. Avoid excessive nitrogen late in the season because it can encourage weak growth.",
+      hi: "नाइट्रोजन को विभाजित मात्रा में देना अधिक उपयोगी रहता है। मौसम के अंत में बहुत अधिक नाइट्रोजन देने से बचें।",
+      bn: "নাইট্রোজেন ভাগ করে প্রয়োগ করা সাধারণত বেশি কার্যকর। মরসুমের শেষ দিকে অতিরিক্ত নাইট্রোজেন দেওয়া এড়িয়ে চলুন।",
+    },
+    pest: {
+      en: "Watch for aphids and other sucking pests, especially when the weather is cool and dry. Check the undersides of leaves and tender growth.",
+      hi: "एफिड जैसे रस चूसने वाले कीटों पर नजर रखें, खासकर ठंडे और सूखे मौसम में। पत्तियों की निचली सतह और नई बढ़वार देखें।",
+      bn: "এফিডসহ রস চোষা পোকা নজরে রাখুন, বিশেষ করে ঠান্ডা ও শুষ্ক আবহাওয়ায়। পাতার নিচের দিক ও নতুন বৃদ্ধি পরীক্ষা করুন।",
+    },
+    disease: {
+      en: "Yellow or orange rust-like markings on leaves deserve attention. Inspect several plants across the field before deciding on treatment.",
+      hi: "पत्तियों पर पीले या नारंगी रंग के रस्ट जैसे निशान दिखें तो ध्यान दें। उपचार तय करने से पहले खेत के कई पौधों की जांच करें।",
+      bn: "পাতায় হলুদ বা কমলা রঙের মরিচার মতো দাগ দেখা গেলে গুরুত্ব দিন। চিকিৎসার আগে জমির বিভিন্ন অংশের গাছ পরীক্ষা করুন।",
+    },
   },
-  price: {
-    en: "Check the Mandi Prices tab — it compares today's rate across your 4 nearest markets and highlights the best one.",
-    hi: "मंडी भाव टैब देखें — यह आपकी 4 नज़दीकी मंडियों के आज के भाव दिखाता है और सबसे अच्छा भाव बताता है।",
-    bn: "মান্ডি দর ট্যাব দেখুন — এটি আপনার ৪টি কাছের মান্ডির আজকের দাম তুলনা করে এবং সেরাটি দেখায়।",
+
+  potato: {
+    names: ["potato", "आलू", "আলু"],
+    label: { en: "Potato", hi: "आलू", bn: "আলু" },
+    irrigation: {
+      en: "Keep soil moisture reasonably steady, especially during tuber formation. Avoid both severe drying and prolonged waterlogging.",
+      hi: "खासकर कंद बनने के समय मिट्टी की नमी स्थिर रखें। बहुत ज्यादा सूखने और लंबे समय तक जलभराव दोनों से बचें।",
+      bn: "বিশেষ করে কন্দ গঠনের সময় মাটির আর্দ্রতা স্থির রাখুন। অতিরিক্ত শুকিয়ে যাওয়া ও দীর্ঘ জলাবদ্ধতা দুটোই এড়ান।",
+    },
+    fertilizer: {
+      en: "Potato needs balanced nutrition, with potassium becoming particularly important around tuber development. Avoid blindly adding large amounts of nitrogen.",
+      hi: "आलू को संतुलित पोषण चाहिए और कंद विकास के समय पोटाश महत्वपूर्ण होता है। बिना जरूरत बहुत ज्यादा नाइट्रोजन न दें।",
+      bn: "আলুর জন্য সুষম পুষ্টি দরকার এবং কন্দ গঠনের সময় পটাশ গুরুত্বপূর্ণ। প্রয়োজন ছাড়া অতিরিক্ত নাইট্রোজেন দেবেন না।",
+    },
+    pest: {
+      en: "Check for aphids, cutworms and other chewing or sucking pests. Look closely at young leaves and the base of the plants.",
+      hi: "एफिड, कटवर्म और अन्य कीटों पर नजर रखें। नई पत्तियों और पौधे के आधार को ध्यान से देखें।",
+      bn: "এফিড, কাটওয়ার্ম ও অন্যান্য পোকা নজরে রাখুন। নতুন পাতা ও গাছের গোড়া ভালো করে দেখুন।",
+    },
+    disease: {
+      en: "After cool, wet or humid weather, inspect leaves for dark spots and rapidly spreading lesions that may indicate blight.",
+      hi: "ठंडे, गीले या बहुत नम मौसम के बाद पत्तियों पर काले धब्बे और तेजी से फैलते घाव देखें, जो झुलसा रोग का संकेत हो सकते हैं।",
+      bn: "ঠান্ডা, ভেজা বা আর্দ্র আবহাওয়ার পর পাতায় কালো দাগ ও দ্রুত ছড়ানো ক্ষত দেখুন, যা ব্লাইটের লক্ষণ হতে পারে।",
+    },
   },
-  fallback: {
-    en: "I can help with irrigation timing, fertilizer schedules, pest alerts, and today's mandi prices. Try asking about one of those, or use the buttons below.",
-    hi: "मैं सिंचाई का समय, खाद अनुसूची, कीट अलर्ट और आज के मंडी भाव में मदद कर सकता हूं। नीचे दिए बटन आज़माएं।",
-    bn: "আমি সেচের সময়, সারের সময়সূচি, পোকার সতর্কতা এবং আজকের মান্ডি দর নিয়ে সাহায্য করতে পারি। নিচের বোতাম চেষ্টা করুন।",
+
+  maize: {
+    names: ["maize", "corn", "मक्का", "मकई", "ভুট্টা"],
+    label: { en: "Maize", hi: "मक्का", bn: "ভুট্টা" },
+    irrigation: {
+      en: "Avoid moisture stress during rapid vegetative growth, tasseling and grain formation. Water according to soil moisture rather than using a fixed schedule.",
+      hi: "तेजी से बढ़वार, टसलिंग और दाना बनने के समय पानी की कमी न होने दें। निश्चित समय-सारणी के बजाय मिट्टी की नमी देखकर सिंचाई करें।",
+      bn: "দ্রুত বৃদ্ধি, ট্যাসেলিং ও দানা গঠনের সময় জলের ঘাটতি হতে দেবেন না। নির্দিষ্ট সময়ের বদলে মাটির আর্দ্রতা দেখে সেচ দিন।",
+    },
+    fertilizer: {
+      en: "Maize generally responds well to split nitrogen feeding. Potassium and phosphorus should be adjusted according to soil fertility and crop stage.",
+      hi: "मक्का में नाइट्रोजन को विभाजित मात्रा में देना उपयोगी रहता है। पोटाश और फॉस्फोरस मिट्टी की उर्वरता और फसल की अवस्था के अनुसार रखें।",
+      bn: "ভুট্টায় নাইট্রোজেন ভাগ করে প্রয়োগ করা উপকারী। পটাশ ও ফসফরাস মাটির উর্বরতা ও ফসলের পর্যায় অনুযায়ী দিন।",
+    },
+    pest: {
+      en: "Inspect young whorls for fall armyworm damage. Look for feeding holes, frass and damaged central leaves.",
+      hi: "नई पत्तियों के बीच फॉल आर्मीवर्म के लक्षण देखें। छेद, कीट का मल और बीच की पत्तियों का नुकसान जांचें।",
+      bn: "নতুন পাতার কুঁড়িতে ফল আর্মিওয়ার্মের ক্ষতি দেখুন। ছিদ্র, পোকার মল ও মাঝের পাতার ক্ষতি পরীক্ষা করুন।",
+    },
+    disease: {
+      en: "Look for leaf spots and unusual discoloration, particularly after prolonged humidity. Check several plants rather than relying on one leaf.",
+      hi: "लंबे समय तक नमी रहने के बाद पत्तियों पर धब्बे और असामान्य रंग देखें। केवल एक पत्ती नहीं, कई पौधों की जांच करें।",
+      bn: "দীর্ঘ সময় আর্দ্রতা থাকলে পাতায় দাগ ও অস্বাভাবিক রং দেখুন। একটি পাতা নয়, একাধিক গাছ পরীক্ষা করুন।",
+    },
+  },
+
+  mustard: {
+    names: ["mustard", "सरसों", "সরিষা"],
+    label: { en: "Mustard", hi: "सरसों", bn: "সরিষা" },
+    irrigation: {
+      en: "Keep moisture adequate during establishment and flowering. Avoid unnecessary heavy irrigation when the soil is already moist.",
+      hi: "स्थापना और फूल आने के समय पर्याप्त नमी रखें। मिट्टी पहले से नम हो तो अनावश्यक भारी सिंचाई से बचें।",
+      bn: "চারা প্রতিষ্ঠা ও ফুলের সময় পর্যাপ্ত আর্দ্রতা রাখুন। মাটি ভেজা থাকলে অপ্রয়োজনীয় বেশি সেচ দেবেন না।",
+    },
+    fertilizer: {
+      en: "Mustard benefits from balanced nutrition. Nitrogen, phosphorus and sulfur should be considered together, especially where soil fertility is low.",
+      hi: "सरसों में संतुलित पोषण जरूरी है। खासकर कम उर्वर मिट्टी में नाइट्रोजन, फॉस्फोरस और सल्फर को साथ में ध्यान में रखें।",
+      bn: "সরিষায় সুষম পুষ্টি দরকার। বিশেষ করে কম উর্বর মাটিতে নাইট্রোজেন, ফসফরাস ও সালফার একসঙ্গে বিবেচনা করুন।",
+    },
+    pest: {
+      en: "Aphids are a key pest to watch during tender growth and flowering. Inspect shoots and flower clusters regularly.",
+      hi: "नई बढ़वार और फूल आने के समय माहू प्रमुख कीट हो सकता है। कोमल टहनियों और फूलों की जांच नियमित करें।",
+      bn: "নতুন বৃদ্ধি ও ফুলের সময় এফিড গুরুত্বপূর্ণ পোকা হতে পারে। কচি ডগা ও ফুলের গুচ্ছ নিয়মিত পরীক্ষা করুন।",
+    },
+    disease: {
+      en: "Watch for white rust, Alternaria-type leaf spotting and other fungal symptoms during humid weather.",
+      hi: "नम मौसम में सफेद रतुआ, अल्टरनेरिया जैसे पत्ती धब्बा और अन्य फफूंद लक्षणों पर नजर रखें।",
+      bn: "আর্দ্র আবহাওয়ায় হোয়াইট রাস্ট, অল্টারনারিয়া ধরনের পাতার দাগ ও অন্যান্য ছত্রাকের লক্ষণ নজরে রাখুন।",
+    },
+  },
+
+  tomato: {
+    names: ["tomato", "tamato", "टमाटर", "টমেটো"],
+    label: { en: "Tomato", hi: "टमाटर", bn: "টমেটো" },
+    irrigation: {
+      en: "Tomato prefers consistent moisture rather than repeated wet-dry cycles. Water near the root zone and avoid keeping foliage wet for long periods.",
+      hi: "टमाटर में लगातार उचित नमी बेहतर रहती है। जड़ों के पास पानी दें और पत्तियों को लंबे समय तक गीला न रखें।",
+      bn: "টমেটোতে নিয়মিত আর্দ্রতা ভালো। গোড়ার কাছে জল দিন এবং পাতাকে দীর্ঘ সময় ভেজা রাখবেন না।",
+    },
+    fertilizer: {
+      en: "Use balanced nutrition during vegetative growth and pay attention to potassium once flowering and fruit development begin. Avoid excessive nitrogen after flowering.",
+      hi: "बढ़वार के समय संतुलित पोषण दें और फूल व फल बनने पर पोटाश पर ध्यान दें। फूल आने के बाद बहुत ज्यादा नाइट्रोजन से बचें।",
+      bn: "বৃদ্ধির সময় সুষম পুষ্টি দিন এবং ফুল ও ফল ধরার সময় পটাশের দিকে নজর দিন। ফুল আসার পর অতিরিক্ত নাইট্রোজেন এড়ান।",
+    },
+    pest: {
+      en: "Watch for fruit borer, whiteflies, aphids and other sucking pests. Inspect new growth and developing fruits.",
+      hi: "फल छेदक, सफेद मक्खी और माहू पर नजर रखें। नई बढ़वार और विकसित हो रहे फलों की जांच करें।",
+      bn: "ফল ছিদ্রকারী পোকা, সাদা মাছি ও এফিড নজরে রাখুন। নতুন বৃদ্ধি ও বাড়তে থাকা ফল পরীক্ষা করুন।",
+    },
+    disease: {
+      en: "Look for leaf spots, curling, yellowing and lesions. Avoid prolonged leaf wetness and remove severely affected plant material.",
+      hi: "पत्तियों पर धब्बे, मुड़ना, पीलापन और घाव देखें। लंबे समय तक पत्तियां गीली न रहें और बहुत प्रभावित हिस्से हटा दें।",
+      bn: "পাতায় দাগ, কুঁকড়ে যাওয়া, হলুদ হওয়া ও ক্ষত দেখুন। দীর্ঘ সময় পাতা ভেজা রাখবেন না এবং বেশি আক্রান্ত অংশ সরিয়ে ফেলুন।",
+    },
+  },
+
+  pumpkin: {
+    names: ["pumpkin", "कद्दू", "কুমড়া"],
+    label: { en: "Pumpkin", hi: "कद्दू", bn: "কুমড়া" },
+    irrigation: {
+      en: "Keep the root zone evenly moist during vine growth, flowering and fruit enlargement. Avoid prolonged waterlogging around the roots.",
+      hi: "बेल की बढ़वार, फूल और फल बढ़ने के समय जड़ क्षेत्र में समान नमी रखें। जड़ों के आसपास लंबे समय तक पानी जमा न रहने दें।",
+      bn: "লতা বৃদ্ধি, ফুল ও ফল বড় হওয়ার সময় গোড়ায় সমান আর্দ্রতা রাখুন। গোড়ায় দীর্ঘ সময় জল জমতে দেবেন না।",
+    },
+    fertilizer: {
+      en: "Pumpkin needs good nutrition for vine growth and fruit development. Balanced feeding with adequate potassium is useful once flowering and fruiting begin.",
+      hi: "कद्दू को बेल की बढ़वार और फल विकास के लिए अच्छा पोषण चाहिए। फूल और फल आने पर पर्याप्त पोटाश के साथ संतुलित पोषण उपयोगी है।",
+      bn: "কুমড়ায় লতা বৃদ্ধি ও ফল গঠনের জন্য ভালো পুষ্টি দরকার। ফুল ও ফল ধরার পর পর্যাপ্ত পটাশসহ সুষম পুষ্টি উপকারী।",
+    },
+    pest: {
+      en: "Check for fruit fly, caterpillars and sucking pests. Inspect flowers, young fruits and tender leaves.",
+      hi: "फल मक्खी, इल्ली और रस चूसने वाले कीट देखें। फूल, छोटे फल और कोमल पत्तियों की जांच करें।",
+      bn: "ফল মাছি, শুঁয়োপোকা ও রস চোষা পোকা দেখুন। ফুল, কচি ফল ও নরম পাতা পরীক্ষা করুন।",
+    },
+    disease: {
+      en: "Powdery mildew and other leaf diseases can increase under humid conditions. Improve airflow and avoid unnecessary overhead watering.",
+      hi: "नम मौसम में पाउडरी मिल्ड्यू और अन्य पत्ती रोग बढ़ सकते हैं। हवा का आवागमन बेहतर रखें और अनावश्यक ऊपर से सिंचाई न करें।",
+      bn: "আর্দ্র আবহাওয়ায় পাউডারি মিলডিউ ও অন্যান্য পাতার রোগ বাড়তে পারে। বাতাস চলাচল বাড়ান এবং অপ্রয়োজনীয় ওপর থেকে জল দেওয়া এড়ান।",
+    },
+  },
+
+  chilli: {
+    names: ["chilli", "chili", "pepper", "मिर्च", "লঙ্কা", "মরিচ"],
+    label: { en: "Chilli", hi: "मिर्च", bn: "লঙ্কা" },
+    irrigation: {
+      en: "Keep soil moisture reasonably steady during flowering and fruiting. Avoid both drought stress and standing water.",
+      hi: "फूल और फल आने के समय मिट्टी में पर्याप्त और स्थिर नमी रखें। सूखे तनाव और जलभराव दोनों से बचें।",
+      bn: "ফুল ও ফলের সময় মাটিতে পর্যাপ্ত ও স্থির আর্দ্রতা রাখুন। খরা ও জলাবদ্ধতা দুটোই এড়ান।",
+    },
+    fertilizer: {
+      en: "Use balanced nutrition during early growth and give more attention to potassium during flowering and fruiting. Avoid excessive nitrogen that produces too much foliage.",
+      hi: "शुरुआती बढ़वार में संतुलित पोषण दें और फूल-फल के समय पोटाश पर ध्यान दें। बहुत ज्यादा नाइट्रोजन से अत्यधिक पत्तियां बढ़ सकती हैं।",
+      bn: "প্রথমদিকে সুষম পুষ্টি দিন এবং ফুল-ফলের সময় পটাশের দিকে নজর দিন। অতিরিক্ত নাইট্রোজেন দিলে বেশি পাতা হতে পারে।",
+    },
+    pest: {
+      en: "Thrips, aphids and mites can cause curling, silvery patches or distorted new growth. Inspect tender leaves regularly.",
+      hi: "थ्रिप्स, माहू और माइट्स से पत्तियां मुड़ सकती हैं, चांदी जैसे निशान या विकृत नई बढ़वार दिख सकती है। कोमल पत्तियों की नियमित जांच करें।",
+      bn: "থ্রিপস, এফিড ও মাইটে পাতা কুঁকড়ে যেতে পারে, রূপালি দাগ বা বিকৃত নতুন বৃদ্ধি দেখা দিতে পারে। কচি পাতা নিয়মিত পরীক্ষা করুন।",
+    },
+    disease: {
+      en: "Watch for leaf curl symptoms, leaf spots and fungal problems during humid periods. Remove badly affected material and improve airflow.",
+      hi: "नम मौसम में लीफ कर्ल, पत्ती धब्बा और फफूंद समस्याओं पर नजर रखें। बहुत प्रभावित हिस्से हटाएं और हवा का आवागमन सुधारें।",
+      bn: "আর্দ্র সময়ে লিফ কার্ল, পাতার দাগ ও ছত্রাকের সমস্যা নজরে রাখুন। বেশি আক্রান্ত অংশ সরিয়ে বাতাস চলাচল বাড়ান।",
+    },
+  },
+
+  cucumber: {
+    names: ["cucumber", "खीरा", "শসা"],
+    label: { en: "Cucumber", hi: "खीरा", bn: "শসা" },
+    irrigation: {
+      en: "Cucumber has a relatively shallow root system, so avoid allowing the root zone to become completely dry. Consistent moisture is especially useful during flowering and fruit development.",
+      hi: "खीरे की जड़ें अपेक्षाकृत उथली होती हैं, इसलिए जड़ क्षेत्र को पूरी तरह सूखने न दें। फूल और फल बनने के समय स्थिर नमी विशेष रूप से उपयोगी है।",
+      bn: "শসার শিকড় তুলনামূলক অগভীর, তাই গোড়ার মাটি পুরো শুকিয়ে যেতে দেবেন না। ফুল ও ফলের সময় নিয়মিত আর্দ্রতা বিশেষভাবে দরকার।",
+    },
+    fertilizer: {
+      en: "Use balanced nutrition during vine development and ensure adequate potassium once fruiting starts. Avoid excessive nitrogen if vines become very leafy with poor fruiting.",
+      hi: "बेल की बढ़वार में संतुलित पोषण दें और फल आने पर पर्याप्त पोटाश रखें। बहुत अधिक पत्तियां और कम फल हों तो अतिरिक्त नाइट्रोजन से बचें।",
+      bn: "লতা বৃদ্ধির সময় সুষম পুষ্টি দিন এবং ফল ধরার পর পর্যাপ্ত পটাশ রাখুন। বেশি পাতা কিন্তু কম ফল হলে অতিরিক্ত নাইট্রোজেন এড়ান।",
+    },
+    pest: {
+      en: "Watch for aphids, whiteflies and other sucking pests on young leaves. Check the underside of leaves regularly.",
+      hi: "नई पत्तियों पर माहू, सफेद मक्खी और अन्य रस चूसने वाले कीट देखें। पत्तियों की निचली सतह नियमित जांचें।",
+      bn: "কচি পাতায় এফিড, সাদা মাছি ও অন্যান্য রস চোষা পোকা দেখুন। পাতার নিচের দিক নিয়মিত পরীক্ষা করুন।",
+    },
+    disease: {
+      en: "Powdery mildew and downy mildew can become problems in suitable weather. Look for white growth or angular/yellow leaf spots.",
+      hi: "उपयुक्त मौसम में पाउडरी और डाउनी मिल्ड्यू की समस्या हो सकती है। सफेद परत या कोणीय पीले धब्बे देखें।",
+      bn: "উপযুক্ত আবহাওয়ায় পাউডারি ও ডাউনি মিলডিউ হতে পারে। সাদা আস্তরণ বা কোণাকৃতি হলুদ দাগ দেখুন।",
+    },
+  },
+
+  garlic: {
+    names: ["garlic", "लहसुन", "রসুন"],
+    label: { en: "Garlic", hi: "लहसुन", bn: "রসুন" },
+    irrigation: {
+      en: "Garlic prefers steady but not excessive moisture. Reduce unnecessary irrigation as bulbs approach maturity and avoid prolonged waterlogging.",
+      hi: "लहसुन में पर्याप्त लेकिन अत्यधिक नहीं नमी रखें। गांठ पकने के समय अनावश्यक सिंचाई कम करें और जलभराव से बचें।",
+      bn: "রসুনে পর্যাপ্ত কিন্তু অতিরিক্ত নয় এমন আর্দ্রতা দরকার। কন্দ পরিপক্ব হওয়ার সময় অপ্রয়োজনীয় সেচ কমান এবং জলাবদ্ধতা এড়ান।",
+    },
+    fertilizer: {
+      en: "Garlic benefits from good early nutrition, while excessive nitrogen late in the crop can delay maturity. Adjust feeding according to soil fertility.",
+      hi: "लहसुन को शुरुआती अवस्था में अच्छा पोषण चाहिए। बाद की अवस्था में अधिक नाइट्रोजन पकने में देरी कर सकती है।",
+      bn: "রসুনে শুরুতে ভালো পুষ্টি দরকার। পরে অতিরিক্ত নাইট্রোজেন পরিপক্বতা দেরি করাতে পারে।",
+    },
+    pest: {
+      en: "Thrips are an important pest to watch. Look for silvery streaks or distorted leaves, especially during dry weather.",
+      hi: "थ्रिप्स पर विशेष नजर रखें। खासकर सूखे मौसम में पत्तियों पर चांदी जैसे निशान या विकृति देखें।",
+      bn: "থ্রিপস গুরুত্বপূর্ণ পোকা। বিশেষ করে শুষ্ক আবহাওয়ায় পাতায় রূপালি দাগ বা বিকৃতি দেখুন।",
+    },
+    disease: {
+      en: "Inspect for fungal leaf spots and discoloration during humid conditions. Good drainage and removal of badly affected leaves can help limit spread.",
+      hi: "नम मौसम में फफूंद वाले पत्ती धब्बों और रंग बदलने की जांच करें। अच्छी जल निकासी और बहुत प्रभावित पत्तियों को हटाना फैलाव कम करने में मदद कर सकता है।",
+      bn: "আর্দ্র আবহাওয়ায় ছত্রাকজনিত পাতার দাগ ও রঙ পরিবর্তন দেখুন। ভালো জল নিষ্কাশন ও বেশি আক্রান্ত পাতা সরানো বিস্তার কমাতে সাহায্য করতে পারে।",
+    },
+  },
+
+  spinach: {
+    names: ["spinach", "palak", "पालक", "পালং", "পালংশাক"],
+    label: { en: "Spinach", hi: "पालक", bn: "পালং শাক" },
+    irrigation: {
+      en: "Spinach grows best with consistently moist soil. Because the crop has a relatively shallow root zone, check moisture frequently during warm or dry weather.",
+      hi: "पालक में मिट्टी की लगातार उचित नमी जरूरी है। जड़ क्षेत्र उथला होने के कारण गर्म या सूखे मौसम में नमी बार-बार जांचें।",
+      bn: "পালং শাকে মাটির নিয়মিত আর্দ্রতা দরকার। শিকড় অগভীর হওয়ায় গরম বা শুষ্ক আবহাওয়ায় ঘন ঘন আর্দ্রতা পরীক্ষা করুন।",
+    },
+    fertilizer: {
+      en: "Leafy growth needs balanced nutrition, especially adequate nitrogen. Avoid excessive fertilizer close to harvest and prefer soil-test-based recommendations where possible.",
+      hi: "पत्तेदार बढ़वार के लिए संतुलित पोषण, खासकर पर्याप्त नाइट्रोजन, जरूरी है। कटाई के करीब बहुत ज्यादा खाद देने से बचें।",
+      bn: "পাতার বৃদ্ধির জন্য সুষম পুষ্টি, বিশেষ করে পর্যাপ্ত নাইট্রোজেন দরকার। কাটার কাছাকাছি অতিরিক্ত সার দেওয়া এড়ান।",
+    },
+    pest: {
+      en: "Watch for aphids and leaf miners. Inspect the undersides of leaves and look for winding mines or clusters of small insects.",
+      hi: "माहू और लीफ माइनर पर नजर रखें। पत्तियों की निचली सतह देखें और सुरंग जैसे निशान या छोटे कीटों के समूह खोजें।",
+      bn: "এফিড ও লিফ মাইনার নজরে রাখুন। পাতার নিচে সরু দাগ/সুড়ঙ্গ ও ছোট পোকার দল দেখুন।",
+    },
+    disease: {
+      en: "Leaf spots and fungal problems can increase under excessive moisture and poor airflow. Avoid unnecessary leaf wetness and remove badly affected leaves.",
+      hi: "अधिक नमी और खराब हवा के कारण पत्ती धब्बा व फफूंद की समस्या बढ़ सकती है। अनावश्यक पत्तियों को गीला रखने से बचें और बहुत प्रभावित पत्तियां हटाएं।",
+      bn: "অতিরিক্ত আর্দ্রতা ও কম বাতাসে পাতার দাগ ও ছত্রাকের সমস্যা বাড়তে পারে। অপ্রয়োজনীয় পাতা ভেজা রাখা এড়ান এবং বেশি আক্রান্ত পাতা সরান।",
+    },
   },
 };
 
-function reply(text, lang) {
-  const s = text.toLowerCase();
-  if (s.includes("irrigat") || s.includes("water") || s.includes("सिंचाई") || s.includes("सेच") || s.includes("जल")) return CANNED.irrigate[lang];
-  if (s.includes("fertil") || s.includes("खाद") || s.includes("सार")) return CANNED.fertilizer[lang];
-  if (s.includes("price") || s.includes("mandi") || s.includes("भाव") || s.includes("दाम") || s.includes("दर")) return CANNED.price[lang];
-  return CANNED.fallback[lang];
+
+/* ---------- assistant helpers ---------- */
+
+const ASSISTANT_INTENTS = {
+  irrigation: [
+    "irrigat", "water", "watering", "watered", "moisture",
+    "सिंचाई", "पानी", "सेच", "जल",
+    "সেচ", "জল", "পানি"
+  ],
+
+  fertilizer: [
+    "fertil", "manure", "urea", "npk", "dap",
+    "खाद", "उर्वरक", "सार",
+    "সার", "ইউরিয়া", "ইউরিয়া"
+  ],
+
+  pest: [
+    "pest", "insect", "bug", "aphid", "thrips", "worm",
+    "कीट", "कीड़ा", "कीड़े", "माहू",
+    "পোকা", "কীট", "এফিড", "থ্রিপস"
+  ],
+
+  disease: [
+    "disease", "fungus", "fungal", "blight", "spot", "rust",
+    "curl", "mildew", "yellow", "yellowing", "leaf",
+    "रोग", "फफूंद", "झुलसा", "धब्बा", "पीला", "पत्ती",
+    "রোগ", "ছত্রাক", "দাগ", "হলুদ", "পাতা"
+  ],
+
+  price: [
+    "price", "rate", "mandi", "market", "sell", "selling",
+    "भाव", "दाम", "मंडी", "बाज़ार", "बेच",
+    "দাম", "দর", "মান্ডি", "বাজার", "বিক্রি"
+  ],
+
+  weather: [
+    "weather", "rain", "temperature", "heat", "cold", "humidity",
+    "मौसम", "बारिश", "तापमान", "गर्मी", "ठंड",
+    "আবহাওয়া", "বৃষ্টি", "তাপমাত্রা", "গরম", "ঠান্ডা"
+  ],
+};
+
+function normalizeText(text) {
+  return text
+    .toLowerCase()
+    .replace(/[?,.!;:()[\]{}]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
-function AssistantView({ t }) {
-  const langKey = Object.keys(STRINGS).find((k) => STRINGS[k] === t) || "en";
-  const [messages, setMessages] = useState([{ from: "bot", text: CANNED.fallback[langKey] }]);
+function includesAny(text, words) {
+  return words.some((word) => text.includes(word));
+}
+
+function detectCrop(text) {
+  const s = normalizeText(text);
+
+  for (const [key, profile] of Object.entries(CROP_PROFILES)) {
+    if (profile.names.some((name) => s.includes(name.toLowerCase()))) {
+      return key;
+    }
+  }
+
+  return null;
+}
+
+function detectIntent(text) {
+  const s = normalizeText(text);
+
+  // Check specific intents first.
+  if (includesAny(s, ASSISTANT_INTENTS.price)) return "price";
+  if (includesAny(s, ASSISTANT_INTENTS.disease)) return "disease";
+  if (includesAny(s, ASSISTANT_INTENTS.pest)) return "pest";
+  if (includesAny(s, ASSISTANT_INTENTS.fertilizer)) return "fertilizer";
+  if (includesAny(s, ASSISTANT_INTENTS.irrigation)) return "irrigation";
+  if (includesAny(s, ASSISTANT_INTENTS.weather)) return "weather";
+
+  return "general";
+}
+
+
+/* ---------- multilingual labels ---------- */
+
+const RESPONSE_LABELS = {
+  en: {
+    overview: "Crop overview",
+    advice: "Practical advice",
+    watch: "What to watch",
+    next: "Next step",
+    irrigation: "Irrigation",
+    fertilizer: "Fertilizer",
+    pest: "Pest watch",
+    disease: "Disease watch",
+    price: "Mandi price",
+    weather: "Weather note",
+    note: "Note",
+  },
+
+  hi: {
+    overview: "फसल की जानकारी",
+    advice: "व्यावहारिक सलाह",
+    watch: "क्या देखें",
+    next: "अगला कदम",
+    irrigation: "सिंचाई",
+    fertilizer: "खाद",
+    pest: "कीट निगरानी",
+    disease: "रोग निगरानी",
+    price: "मंडी भाव",
+    weather: "मौसम सलाह",
+    note: "ध्यान दें",
+  },
+
+  bn: {
+    overview: "ফসলের তথ্য",
+    advice: "ব্যবহারিক পরামর্শ",
+    watch: "কী দেখবেন",
+    next: "পরবর্তী পদক্ষেপ",
+    irrigation: "সেচ",
+    fertilizer: "সার",
+    pest: "পোকা নজরদারি",
+    disease: "রোগ নজরদারি",
+    price: "মান্ডি দর",
+    weather: "আবহাওয়া পরামর্শ",
+    note: "খেয়াল রাখুন",
+  },
+};
+
+
+/* ---------- response builders ---------- */
+
+function makeStructuredResponse(profile, intent, lang, variant = 0) {
+  const label = profile.label[lang] || profile.label.en;
+  const L = RESPONSE_LABELS[lang] || RESPONSE_LABELS.en;
+
+  const variants = {
+    irrigation: [
+      `### ${L.irrigation} — ${label}
+
+**${L.advice}**
+${profile.irrigation[lang] || profile.irrigation.en}
+
+**${L.watch}**
+Check the soil moisture around the root zone before watering. If the soil is still moist, avoid unnecessary irrigation.
+
+**${L.next}**
+If you tell me the soil type and how many days it has been since the last rain, I can make the advice more specific.`,
+
+      `### ${L.irrigation} — ${label}
+
+**Current guidance**
+${profile.irrigation[lang] || profile.irrigation.en}
+
+**Simple field check**
+Take a small amount of soil from the root zone and check whether it is actually dry before irrigating.
+
+**${L.next}**
+Tell me: **soil type + crop stage + days since last rain**.`,
+
+      `### ${label}: irrigation
+
+**What to do**
+${profile.irrigation[lang] || profile.irrigation.en}
+
+**Avoid**
+Do not follow a fixed watering schedule when recent rain or existing soil moisture has already supplied enough water.
+
+**${L.next}**
+For a better recommendation, give me the crop stage and last-rain information.`,
+    ],
+
+    fertilizer: [
+      `### ${L.fertilizer} — ${label}
+
+**${L.advice}**
+${profile.fertilizer[lang] || profile.fertilizer.en}
+
+**${L.watch}**
+Avoid applying a large amount of fertilizer at once. Crop stage and soil condition matter.
+
+**${L.next}**
+If you tell me the crop stage and soil type, I can narrow this down further.`,
+
+      `### ${label}: fertilizer plan
+
+**Main point**
+${profile.fertilizer[lang] || profile.fertilizer.en}
+
+**Good practice**
+Use split applications where appropriate and avoid guessing a heavy dose without knowing the soil condition.
+
+**${L.next}**
+Tell me whether the crop is at **sowing, vegetative, flowering, grain/fruit filling, or maturity** stage.`,
+
+      `### ${L.fertilizer} advice for ${label}
+
+**Recommended approach**
+${profile.fertilizer[lang] || profile.fertilizer.en}
+
+**Important**
+More fertilizer does not automatically mean more yield. Excess nitrogen can sometimes create weak or overly leafy growth.
+
+**${L.next}**
+Share the crop stage and I can explain what nutrient priority makes sense at that stage.`,
+    ],
+
+    pest: [
+      `### ${L.pest} — ${label}
+
+**${L.watch}**
+${profile.pest[lang] || profile.pest.en}
+
+**Field check**
+Inspect new leaves, tender shoots and the underside of leaves. Look for clusters, feeding marks or distorted growth.
+
+**${L.next}**
+If you describe the pest or upload a clear leaf photo, I can help narrow down what you are seeing.`,
+
+      `### Pest check: ${label}
+
+**Main pests to watch**
+${profile.pest[lang] || profile.pest.en}
+
+**Do this first**
+Walk through several plants rather than checking only one. Note whether the damage is on young leaves, old leaves, flowers or fruits.
+
+**${L.next}**
+Tell me what the damage looks like — holes, curling, yellowing, sticky leaves, spots, or insects.`,
+
+      `### ${label} — pest watch
+
+**Likely concern**
+${profile.pest[lang] || profile.pest.en}
+
+**Early warning signs**
+Check for distorted new growth, feeding marks, insect clusters and unusual leaf colour.
+
+**${L.next}**
+If you tell me where the damage starts on the plant, I can help distinguish the likely problem.`,
+    ],
+
+    disease: [
+      `### ${L.disease} — ${label}
+
+**${L.watch}**
+${profile.disease[lang] || profile.disease.en}
+
+**What to inspect**
+Look at several leaves from different parts of the field. Check the front and underside of affected leaves.
+
+**${L.next}**
+You can also upload a clear leaf photo in **Crop Doctor** for a preliminary visual screening.`,
+
+      `### Disease check: ${label}
+
+**Possible concern**
+${profile.disease[lang] || profile.disease.en}
+
+**Before treating**
+Check whether the symptoms are spreading, whether the leaves stay wet for long periods, and whether similar symptoms appear on nearby plants.
+
+**${L.next}**
+Describe the colour and shape of the spots, or upload a close-up photo.`,
+
+      `### ${label}: disease watch
+
+**What to look for**
+${profile.disease[lang] || profile.disease.en}
+
+**Field action**
+Remove severely damaged plant material where appropriate and improve airflow/drainage. Avoid applying a treatment before identifying the problem.
+
+**${L.next}**
+If you send me the symptom — for example **yellowing, brown spots, curling or white powder** — I can narrow the possibilities.`,
+    ],
+
+    general: [
+      `### ${label} — quick guide
+
+**${L.irrigation}**
+${profile.irrigation[lang] || profile.irrigation.en}
+
+**${L.fertilizer}**
+${profile.fertilizer[lang] || profile.fertilizer.en}
+
+**${L.pest}**
+${profile.pest[lang] || profile.pest.en}
+
+**${L.next}**
+Ask me specifically about **water, fertilizer, pests, disease, weather, or mandi price** for ${label}.`,
+
+      `### ${label} — field checklist
+
+**1. Water**
+${profile.irrigation[lang] || profile.irrigation.en}
+
+**2. Nutrition**
+${profile.fertilizer[lang] || profile.fertilizer.en}
+
+**3. Crop protection**
+${profile.pest[lang] || profile.pest.en}
+
+**4. Disease**
+${profile.disease[lang] || profile.disease.en}
+
+**${L.next}**
+Tell me what you are currently worried about and I will focus on that part of the crop.`,
+
+      `### About ${label}
+
+${profile.label[lang] || profile.label.en} needs attention to four things:
+
+• **Water:** ${profile.irrigation[lang] || profile.irrigation.en}
+
+• **Nutrition:** ${profile.fertilizer[lang] || profile.fertilizer.en}
+
+• **Pests:** ${profile.pest[lang] || profile.pest.en}
+
+• **Disease:** ${profile.disease[lang] || profile.disease.en}
+
+**${L.next}**
+You can ask something as simple as:  
+“${label} fertilizer?” or “When should I water ${label}?”`,
+    ],
+  };
+
+  return variants[intent][variant % variants[intent].length];
+}
+
+
+/* ---------- mandi response ---------- */
+
+function makePriceResponse(cropKey, lang, variant = 0) {
+  const profile = CROP_PROFILES[cropKey];
+  const cropLabel = profile.label[lang] || profile.label.en;
+  const rows = MANDI_DATA[cropLabel] || MANDI_DATA[profile.label.en];
+
+  if (!rows) {
+    return null;
+  }
+
+  const sorted = [...rows].sort((a, b) => b.price - a.price);
+  const best = sorted[0];
+  const nearest = [...rows].sort((a, b) => a.km - b.km).slice(0, 3);
+
+  const L = RESPONSE_LABELS[lang] || RESPONSE_LABELS.en;
+
+  if (variant % 2 === 0) {
+    return `### ${L.price} — ${cropLabel}
+
+**Best listed price**
+₹${best.price} / quintal — **${best.market}**, ${best.km} km away.
+
+**Nearby comparison**
+${nearest.map((r) => `• ${r.market}: ₹${r.price}/qtl (${r.km} km)`).join("\n")}
+
+**${L.next}**
+Compare the price with transport cost and crop quality before deciding where to sell.
+
+*These are the demo market figures already configured in this app.*`;
+  }
+
+  return `### ${cropLabel} — market snapshot
+
+**Highest listed rate:** ₹${best.price}/qtl  
+**Market:** ${best.market}  
+**Distance:** ${best.km} km
+
+**Nearby rates**
+${nearest.map((r) => `• ${r.market} — ₹${r.price}/qtl`).join("\n")}
+
+**${L.note}**
+The highest price is not automatically the best net return. Consider distance, transport and the quality/grade of your produce.
+
+*Using the mandi data configured in this demo.*`;
+}
+
+
+/* ---------- weather response ---------- */
+
+function makeWeatherResponse(cropKey, lang) {
+  const profile = CROP_PROFILES[cropKey];
+  const label = profile.label[lang] || profile.label.en;
+
+  const text = {
+    en: `### ${label} — weather guidance
+
+**Rain**
+After significant rain, check soil moisture before irrigating again.
+
+**Heat**
+During hot, dry conditions, inspect the root zone more frequently and watch for wilting or moisture stress.
+
+**Humidity**
+High humidity increases the importance of scouting for fungal and leaf diseases.
+
+**Next step**
+Tell me whether your field is currently **rainy, hot/dry, or humid**, and I can focus the advice.`,
+
+    hi: `### ${label} — मौसम सलाह
+
+**बारिश**
+अच्छी बारिश के बाद दोबारा सिंचाई करने से पहले मिट्टी की नमी जांचें।
+
+**गर्मी**
+गर्म और सूखे मौसम में जड़ क्षेत्र की नमी बार-बार देखें और मुरझाने के लक्षणों पर ध्यान दें।
+
+**नमी**
+अधिक आर्द्रता में फफूंद और पत्ती रोगों की निगरानी ज्यादा जरूरी है।
+
+**अगला कदम**
+बताएं कि आपके खेत में अभी **बारिश, गर्मी/सूखापन या अधिक नमी** में से क्या स्थिति है।`,
+
+    bn: `### ${label} — আবহাওয়া পরামর্শ
+
+**বৃষ্টি**
+ভালো বৃষ্টির পর আবার সেচ দেওয়ার আগে মাটির আর্দ্রতা পরীক্ষা করুন।
+
+**গরম**
+গরম ও শুষ্ক আবহাওয়ায় গোড়ার মাটি বেশি ঘন ঘন দেখুন এবং গাছ ঝিমিয়ে পড়ছে কি না খেয়াল করুন।
+
+**আর্দ্রতা**
+বেশি আর্দ্রতায় ছত্রাক ও পাতার রোগের নজরদারি আরও গুরুত্বপূর্ণ।
+
+**পরবর্তী পদক্ষেপ**
+আপনার জমিতে এখন **বৃষ্টি, গরম/শুষ্ক, নাকি বেশি আর্দ্র**—জানালে আমি সেই অনুযায়ী বলব।`,
+  };
+
+  return text[lang] || text.en;
+}
+
+
+/* ---------- main reply engine ---------- */
+
+function reply(text, lang, previousCrop = null, variant = 0) {
+  const normalized = normalizeText(text);
+
+  const cropKey = detectCrop(normalized) || previousCrop;
+  const intent = detectIntent(normalized);
+
+  // If the user asks for a crop that exists in the app,
+  // always prefer crop-specific information.
+  if (cropKey) {
+    if (intent === "price") {
+      return {
+        text: makePriceResponse(cropKey, lang, variant),
+        cropKey,
+      };
+    }
+
+    if (intent === "weather") {
+      return {
+        text: makeWeatherResponse(cropKey, lang),
+        cropKey,
+      };
+    }
+
+    return {
+      text: makeStructuredResponse(
+        CROP_PROFILES[cropKey],
+        intent,
+        lang,
+        variant
+      ),
+      cropKey,
+    };
+  }
+
+  // No crop mentioned: still answer the intent instead of giving
+  // the same generic fallback every time.
+  const generic = {
+    irrigation: {
+      en: "### Irrigation\n\nTell me the crop name and I can give crop-specific watering guidance. You can also include soil type and days since the last rain.",
+      hi: "### सिंचाई\n\nफसल का नाम बताएं, मैं उसी फसल के अनुसार सिंचाई की सलाह दूंगा। मिट्टी का प्रकार और आखिरी बारिश के बाद के दिन भी बताएं।",
+      bn: "### সেচ\n\nফসলের নাম বলুন, আমি সেই ফসল অনুযায়ী সেচের পরামর্শ দেব। মাটির ধরন ও শেষ বৃষ্টির পর কত দিন হয়েছে তাও জানাতে পারেন।",
+    },
+
+    fertilizer: {
+      en: "### Fertilizer\n\nTell me the crop and growth stage first. Fertilizer advice is different for rice, vegetables, leafy crops and tuber crops.",
+      hi: "### खाद\n\nपहले फसल और उसकी अवस्था बताएं। धान, सब्जियों, पत्तेदार फसलों और कंद वाली फसलों की खाद की जरूरत अलग होती है।",
+      bn: "### সার\n\nপ্রথমে ফসল ও তার পর্যায় বলুন। ধান, সবজি, পাতাজাতীয় ফসল ও কন্দজাতীয় ফসলের সারের প্রয়োজন আলাদা।",
+    },
+
+    pest: {
+      en: "### Pest check\n\nTell me the crop and what you are seeing — holes, curling, yellowing, sticky leaves, insects or damaged fruits.",
+      hi: "### कीट जांच\n\nफसल का नाम और लक्षण बताएं — छेद, पत्ती मुड़ना, पीलापन, चिपचिपी पत्ती, कीट या खराब फल।",
+      bn: "### পোকা পরীক্ষা\n\nফসলের নাম ও কী দেখছেন তা বলুন — ছিদ্র, পাতা কুঁকড়ানো, হলুদ হওয়া, আঠালো পাতা, পোকা বা ফলের ক্ষতি।",
+    },
+
+    disease: {
+      en: "### Disease check\n\nTell me the crop and describe the symptom: yellowing, brown spots, black spots, curling, white powder or wilting.",
+      hi: "### रोग जांच\n\nफसल और लक्षण बताएं: पीलापन, भूरे/काले धब्बे, पत्ती मुड़ना, सफेद पाउडर या मुरझाना।",
+      bn: "### রোগ পরীক্ষা\n\nফসলের নাম ও লক্ষণ বলুন: হলুদ হওয়া, বাদামি/কালো দাগ, পাতা কুঁকড়ানো, সাদা গুঁড়োর মতো আস্তরণ বা শুকিয়ে যাওয়া।",
+    },
+
+    price: {
+      en: "### Mandi price\n\nTell me which crop you want the price for — for example rice, potato, tomato, chilli, garlic or spinach.",
+      hi: "### मंडी भाव\n\nकिस फसल का भाव चाहिए बताएं — जैसे धान, आलू, टमाटर, मिर्च, लहसुन या पालक।",
+      bn: "### মান্ডি দর\n\nকোন ফসলের দাম জানতে চান বলুন — যেমন ধান, আলু, টমেটো, লঙ্কা, রসুন বা পালং।",
+    },
+
+    weather: {
+      en: "### Weather\n\nTell me the crop and whether your field is currently rainy, hot/dry or humid. I can then focus the advice on water and disease risk.",
+      hi: "### मौसम\n\nफसल का नाम और खेत की स्थिति बताएं — बारिश, गर्म/सूखा या नम। फिर मैं पानी और रोग के जोखिम पर ध्यान दूंगा।",
+      bn: "### আবহাওয়া\n\nফসলের নাম ও জমির অবস্থা বলুন — বৃষ্টি, গরম/শুষ্ক নাকি আর্দ্র। তারপর আমি জল ও রোগের ঝুঁকি অনুযায়ী বলব।",
+    },
+
+    general: {
+      en: "### KrishiMind\n\nI can give crop-specific guidance for **Rice, Wheat, Potato, Maize, Mustard, Tomato, Pumpkin, Chilli, Cucumber, Garlic and Spinach**.\n\nTry: **“Tomato fertilizer”**, **“Spinach pests”**, **“When should I water garlic?”**, or **“Chilli mandi price?”**",
+      hi: "### कृषिमाइंड\n\nमैं **धान, गेहूं, आलू, मक्का, सरसों, टमाटर, कद्दू, मिर्च, खीरा, लहसुन और पालक** के लिए फसल-विशिष्ट सलाह दे सकता हूं।\n\nजैसे पूछें: **“टमाटर की खाद?”**, **“पालक में कौन सा कीट?”**, **“लहसुन में पानी कब दें?”**",
+      bn: "### কৃষিমাইন্ড\n\nআমি **ধান, গম, আলু, ভুট্টা, সরিষা, টমেটো, কুমড়া, লঙ্কা, শসা, রসুন ও পালং শাক** সম্পর্কে ফসলভিত্তিক পরামর্শ দিতে পারি।\n\nযেমন জিজ্ঞাসা করুন: **“টমেটোর সার?”**, **“পালংয়ে কোন পোকা?”**, **“রসুনে কখন সেচ দেব?”**",
+    },
+  };
+
+  return {
+    text: generic[intent][lang] || generic[intent].en,
+    cropKey: previousCrop,
+  };
+}
+
+
+/* -------------------------------- assistant UI -------------------------------- */
+
+function AssistantView({ t, lang }) {
+  const [messages, setMessages] = useState([
+    {
+      from: "bot",
+      text: reply("", lang).text,
+    },
+  ]);
+
   const [input, setInput] = useState("");
+  const lastCropRef = useRef(null);
+  const responseCountRef = useRef(0);
 
   const send = (text) => {
     const msg = (text ?? input).trim();
     if (!msg) return;
-    setMessages((m) => [...m, { from: "user", text: msg }]);
+
+    const result = reply(
+      msg,
+      lang,
+      lastCropRef.current,
+      responseCountRef.current
+    );
+
+    lastCropRef.current = result.cropKey;
+    responseCountRef.current += 1;
+
+    setMessages((m) => [
+      ...m,
+      { from: "user", text: msg },
+    ]);
+
     setInput("");
+
     setTimeout(() => {
-      setMessages((m) => [...m, { from: "bot", text: reply(msg, langKey) }]);
-    }, 500);
+      setMessages((m) => [
+        ...m,
+        { from: "bot", text: result.text },
+      ]);
+    }, 450);
   };
 
   return (
     <div>
-      <SectionHeader title={t.assistantTitle} sub={t.assistantSub} />
-      <div style={{ background: "#fff", border: "1px solid #ECE7D8", borderRadius: 16, display: "flex", flexDirection: "column", height: 440, maxWidth: 640 }}>
-        <div style={{ flex: 1, overflowY: "auto", padding: 18, display: "flex", flexDirection: "column", gap: 10 }}>
+      <SectionHeader
+        title={t.assistantTitle}
+        sub={t.assistantSub}
+      />
+
+      <div
+        style={{
+          background: "#fff",
+          border: "1px solid #ECE7D8",
+          borderRadius: 16,
+          display: "flex",
+          flexDirection: "column",
+          height: 440,
+          maxWidth: 640,
+        }}
+      >
+        <div
+          style={{
+            flex: 1,
+            overflowY: "auto",
+            padding: 18,
+            display: "flex",
+            flexDirection: "column",
+            gap: 10,
+          }}
+        >
           {messages.map((m, i) => (
-            <div key={i} style={{
-              alignSelf: m.from === "user" ? "flex-end" : "flex-start",
-              background: m.from === "user" ? "var(--forest)" : "var(--leaf-light)",
-              color: m.from === "user" ? "#fff" : "var(--forest)",
-              padding: "10px 14px", borderRadius: 14,
-              borderBottomRightRadius: m.from === "user" ? 4 : 14,
-              borderBottomLeftRadius: m.from === "bot" ? 4 : 14,
-              maxWidth: "80%", fontSize: 13.5, lineHeight: 1.5,
-            }}>{m.text}</div>
+            <div
+              key={i}
+              style={{
+                alignSelf:
+                  m.from === "user"
+                    ? "flex-end"
+                    : "flex-start",
+
+                background:
+                  m.from === "user"
+                    ? "var(--forest)"
+                    : "var(--leaf-light)",
+
+                color:
+                  m.from === "user"
+                    ? "#fff"
+                    : "var(--forest)",
+
+                padding: "10px 14px",
+                borderRadius: 14,
+
+                borderBottomRightRadius:
+                  m.from === "user" ? 4 : 14,
+
+                borderBottomLeftRadius:
+                  m.from === "bot" ? 4 : 14,
+
+                maxWidth: "88%",
+                fontSize: 13.5,
+                lineHeight: 1.55,
+                whiteSpace: "pre-wrap",
+              }}
+            >
+              {m.text}
+            </div>
           ))}
         </div>
-        <div style={{ padding: 12, borderTop: "1px solid #F0ECDF", display: "flex", gap: 6, flexWrap: "wrap" }}>
+
+        <div
+          style={{
+            padding: 12,
+            borderTop: "1px solid #F0ECDF",
+            display: "flex",
+            gap: 6,
+            flexWrap: "wrap",
+          }}
+        >
           {t.faqChips.map((chip) => (
-            <button key={chip} onClick={() => send(chip)} style={{
-              fontSize: 11.5, padding: "6px 10px", borderRadius: 999, border: "1px solid #DCD5C2",
-              background: "#fff", color: "#5B6B5D", fontWeight: 600,
-            }}>{chip}</button>
+            <button
+              key={chip}
+              onClick={() => send(chip)}
+              style={{
+                fontSize: 11.5,
+                padding: "6px 10px",
+                borderRadius: 999,
+                border: "1px solid #DCD5C2",
+                background: "#fff",
+                color: "#5B6B5D",
+                fontWeight: 600,
+              }}
+            >
+              {chip}
+            </button>
           ))}
         </div>
-        <div style={{ padding: 12, borderTop: "1px solid #F0ECDF", display: "flex", gap: 8 }}>
-          <button style={{
-            width: 40, height: 40, borderRadius: 10, border: "1px solid #DCD5C2", background: "#fff",
-            display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
-          }} title="Voice input (demo)">
+
+        <div
+          style={{
+            padding: 12,
+            borderTop: "1px solid #F0ECDF",
+            display: "flex",
+            gap: 8,
+          }}
+        >
+          <button
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 10,
+              border: "1px solid #DCD5C2",
+              background: "#fff",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexShrink: 0,
+            }}
+            title="Voice input (demo)"
+          >
             <Mic size={17} color="var(--leaf)" />
           </button>
+
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && send()}
+            onKeyDown={(e) =>
+              e.key === "Enter" && send()
+            }
             placeholder={t.inputPlaceholder}
-            style={{ flex: 1, border: "1px solid #DCD5C2", borderRadius: 10, padding: "0 14px", fontSize: 13.5 }}
+            style={{
+              flex: 1,
+              border: "1px solid #DCD5C2",
+              borderRadius: 10,
+              padding: "0 14px",
+              fontSize: 13.5,
+            }}
           />
-          <button onClick={() => send()} style={{
-            width: 40, height: 40, borderRadius: 10, border: "none", background: "var(--leaf)",
-            display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
-          }}>
+
+          <button
+            onClick={() => send()}
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 10,
+              border: "none",
+              background: "var(--leaf)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexShrink: 0,
+            }}
+          >
             <Send size={16} color="#fff" />
           </button>
         </div>
