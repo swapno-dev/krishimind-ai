@@ -526,36 +526,179 @@ function DoctorView({ t }) {
   const canvasRef = useRef(null);
 
   const analyzeImage = useCallback((dataUrl) => {
-    const img = new Image();
-    img.onload = () => {
-      const canvas = canvasRef.current;
-      const ctx = canvas.getContext("2d");
-      const w = (canvas.width = 60);
-      const h = (canvas.height = 60);
-      ctx.drawImage(img, 0, 0, w, h);
-      const data = ctx.getImageData(0, 0, w, h).data;
-      let r = 0, g = 0, b = 0, n = 0;
-      for (let i = 0; i < data.length; i += 4) {
-        r += data[i]; g += data[i + 1]; b += data[i + 2]; n++;
-      }
-      r /= n; g /= n; b /= n;
+  const img = new Image();
 
-      // simple heuristic classification off average colour composition
-      const greenness = g - (r + b) / 2;
-      const brownBias = r - g;
-      let key, conf;
-      if (brownBias > 12 && r > 90) {
-        key = "blight"; conf = Math.min(96, 62 + brownBias);
-      } else if (greenness < 8 && r > g * 0.85) {
-        key = "deficiency"; conf = Math.min(94, 60 + (8 - greenness));
-      } else {
-        key = "healthy"; conf = Math.min(97, 70 + greenness);
+  img.onload = () => {
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d");
+
+    const w = (canvas.width = 120);
+    const h = (canvas.height = 120);
+
+    ctx.drawImage(img, 0, 0, w, h);
+
+    const data = ctx.getImageData(0, 0, w, h).data;
+
+    let totalPixels = 0;
+    let greenPixels = 0;
+    let yellowPixels = 0;
+    let brownPixels = 0;
+    let darkPixels = 0;
+    let palePixels = 0;
+
+    for (let i = 0; i < data.length; i += 4) {
+      const r = data[i];
+      const g = data[i + 1];
+      const b = data[i + 2];
+
+      // Ignore white background
+      if (r > 245 && g > 245 && b > 245) continue;
+
+      totalPixels++;
+
+      // Healthy green areas
+      if (g > r * 1.12 && g > b * 1.08 && g > 55) {
+        greenPixels++;
       }
-      setResult({ key, conf: Math.round(Math.max(58, Math.min(97, conf))) });
+
+      // Yellow / chlorosis
+      if (
+        r > 110 &&
+        g > 95 &&
+        b < g * 0.8 &&
+        Math.abs(r - g) < 80
+      ) {
+        yellowPixels++;
+      }
+
+      // Brown / damaged tissue
+      if (
+        r > 45 &&
+        r < 190 &&
+        g < r * 0.95 &&
+        b < g * 0.9
+      ) {
+        brownPixels++;
+      }
+
+      // Dark spots / lesions
+      if (r < 95 && g < 100 && b < 85) {
+        darkPixels++;
+      }
+
+      // Pale areas
+      if (
+        r > 130 &&
+        g > 130 &&
+        b > 80 &&
+        Math.abs(r - g) < 45
+      ) {
+        palePixels++;
+      }
+    }
+
+    if (totalPixels === 0) {
+      setResult({
+        key: "uncertain",
+        conf: 55,
+        severity: "Low",
+      });
       setStatus("done");
-    };
-    img.src = dataUrl;
-  }, []);
+      return;
+    }
+
+    const greenPct = (greenPixels / totalPixels) * 100;
+    const yellowPct = (yellowPixels / totalPixels) * 100;
+    const brownPct = (brownPixels / totalPixels) * 100;
+    const darkPct = (darkPixels / totalPixels) * 100;
+    const palePct = (palePixels / totalPixels) * 100;
+
+    let key;
+    let conf;
+    let severity;
+
+    if (darkPct > 12 || brownPct > 18) {
+      key = "blight";
+
+      const damage = darkPct + brownPct;
+
+      conf = Math.min(
+        96,
+        Math.round(68 + damage * 0.8)
+      );
+
+      severity =
+        damage > 45
+          ? "High"
+          : damage > 28
+          ? "Moderate"
+          : "Low";
+
+    } else if (yellowPct > 18 || palePct > 28) {
+      key = "deficiency";
+
+      const deficiencyScore =
+        yellowPct + palePct * 0.6;
+
+      conf = Math.min(
+        94,
+        Math.round(64 + deficiencyScore * 0.7)
+      );
+
+      severity =
+        deficiencyScore > 45
+          ? "Moderate"
+          : "Low";
+
+    } else if (
+      greenPct > 45 &&
+      brownPct < 10 &&
+      darkPct < 8
+    ) {
+      key = "healthy";
+
+      conf = Math.min(
+        97,
+        Math.round(72 + greenPct * 0.35)
+      );
+
+      severity = "None";
+
+    } else {
+      key = "uncertain";
+
+      conf = Math.round(
+        Math.min(
+          82,
+          Math.max(
+            58,
+            60 +
+              Math.abs(greenPct - yellowPct) * 0.3 +
+              Math.random() * 8
+          )
+        )
+      );
+
+      severity = "Needs inspection";
+    }
+
+    setResult({
+      key,
+      conf,
+      severity,
+      stats: {
+        green: Math.round(greenPct),
+        yellow: Math.round(yellowPct),
+        brown: Math.round(brownPct),
+        dark: Math.round(darkPct),
+      },
+    });
+
+    setStatus("done");
+  };
+
+  img.src = dataUrl;
+}, []);
 
   const handleFile = (e) => {
     const file = e.target.files?.[0];
@@ -571,10 +714,86 @@ function DoctorView({ t }) {
   };
 
   const ADVICE = {
-    healthy: { label: t.resultHealthy, color: "var(--leaf)", icon: CheckCircle2, tips: ["Continue current watering schedule", "Re-check in 5–7 days"] },
-    deficiency: { label: t.resultDeficiency, color: "var(--wheat)", icon: AlertTriangle, tips: ["Apply split dose of Urea", "Recheck leaf colour in 4 days", "Avoid over-irrigating after application"] },
-    blight: { label: t.resultBlight, color: "var(--danger)", icon: AlertTriangle, tips: ["Remove and destroy affected leaves", "Apply recommended fungicide", "Avoid overhead irrigation in evening"] },
-  };
+  healthy: {
+    label: t.resultHealthy,
+    color: "var(--leaf)",
+    icon: CheckCircle2,
+
+    summary:
+      "The uploaded leaf is predominantly green with no strong visual signs of widespread spotting, yellowing, or tissue damage.",
+
+    likelyCause:
+      "No major visible disease pattern was detected in this image.",
+
+    tips: [
+      "Continue the current irrigation schedule and avoid prolonged waterlogging around the root zone.",
+      "Inspect the lower and inner leaves every 5–7 days, as many fungal infections first appear in humid, poorly ventilated areas.",
+      "Remove any fallen or decaying plant material from around the crop to reduce disease risk.",
+      "Monitor the crop after heavy rainfall or periods of high humidity."
+    ],
+  },
+
+  deficiency: {
+    label: t.resultDeficiency,
+    color: "var(--wheat)",
+    icon: AlertTriangle,
+
+    summary:
+      "The image shows noticeable pale or yellow-toned areas that may indicate nutrient stress, chlorosis, or early-stage deficiency.",
+
+    likelyCause:
+      "Possible nitrogen or micronutrient deficiency. Similar symptoms can also occur due to poor drainage, root stress, or excessive watering.",
+
+    tips: [
+      "Check whether the yellowing starts on older leaves or younger leaves, as this can help identify the likely nutrient deficiency.",
+      "Avoid applying a large amount of fertilizer at once; use the recommended crop-specific dose in split applications.",
+      "Check soil moisture before irrigating, because overwatering can reduce nutrient uptake by the roots.",
+      "If symptoms spread quickly, inspect the roots and nearby leaves for disease or pest damage.",
+      "Consider a soil test before repeatedly applying nitrogen-based fertilizer."
+    ],
+  },
+
+  blight: {
+    label: t.resultBlight,
+    color: "var(--danger)",
+    icon: AlertTriangle,
+
+    summary:
+      "The image contains dark or brown discoloured areas that may be consistent with leaf spotting, necrosis, or a possible fungal or bacterial infection.",
+
+    likelyCause:
+      "The visible brown and dark patches suggest damaged leaf tissue. Humid conditions, prolonged leaf wetness, and infected crop residue can increase the risk of disease spread.",
+
+    tips: [
+      "Inspect nearby leaves immediately to check whether similar spots are spreading through the plant.",
+      "Remove severely affected leaves and dispose of them away from the field; do not leave infected material beside healthy plants.",
+      "Avoid overhead irrigation late in the day, as wet leaves overnight can encourage fungal growth.",
+      "Improve spacing and airflow between plants wherever possible.",
+      "Use only a crop-appropriate and locally recommended fungicide or treatment after confirming the disease, following the product label and local agricultural guidance.",
+      "If the spots expand rapidly or appear on multiple plants, consult a local agricultural extension officer for confirmation."
+    ],
+  },
+
+  uncertain: {
+    label: "Unable to confidently identify the leaf condition",
+    color: "var(--sky)",
+    icon: AlertTriangle,
+
+    summary:
+      "The visual pattern in this image does not clearly match one of the demo detection categories.",
+
+    likelyCause:
+      "The image may contain shadows, complex background colours, multiple symptoms, or the affected area may not be clearly visible.",
+
+    tips: [
+      "Take another photo in natural daylight.",
+      "Place the leaf against a plain background before taking the picture.",
+      "Capture both the front and underside of the affected leaf.",
+      "Make sure the damaged or discoloured area is clearly visible and in focus.",
+      "Upload a close-up image if the symptoms appear only as small spots."
+    ],
+  },
+};
 
   return (
     <div>
@@ -638,10 +857,67 @@ function DoctorView({ t }) {
                   <div style={{ width: 44, height: 44, borderRadius: 12, background: a.color + "22", display: "flex", alignItems: "center", justifyContent: "center" }}>
                     <Icon size={22} color={a.color} />
                   </div>
-                  <div>
-                    <div style={{ fontWeight: 700, fontSize: 17, color: "var(--forest)" }}>{a.label}</div>
-                    <div style={{ fontSize: 12.5, color: "#8A9389" }}>{t.confidence}: {result.conf}%</div>
-                  </div>
+                  <div style={{ flex: 1 }}>
+  {/* Disease / condition name */}
+  <div
+    style={{
+      fontWeight: 700,
+      fontSize: 17,
+      color: "var(--forest)",
+      marginBottom: 4,
+    }}
+  >
+    {a.label}
+  </div>
+
+  {/* Confidence percentage */}
+  <div
+    style={{
+      fontSize: 12.5,
+      color: "#8A9389",
+      marginBottom: 8,
+    }}
+  >
+    {t.confidence}: {result.conf}%
+  </div>
+
+  {/* Confidence bar */}
+  <div
+    style={{
+      height: 7,
+      background: "#EEE9DA",
+      borderRadius: 999,
+      overflow: "hidden",
+      marginBottom: 10,
+    }}
+  >
+    <div
+      style={{
+        height: "100%",
+        width: `${result.conf}%`,
+        background: a.color,
+        borderRadius: 999,
+        transition: "width 0.5s ease",
+      }}
+    />
+  </div>
+
+  {/* Severity badge */}
+  <span
+    style={{
+      display: "inline-block",
+      fontSize: 11,
+      fontWeight: 700,
+      padding: "4px 9px",
+      borderRadius: 999,
+      background: a.color + "22",
+      color: a.color,
+    }}
+  >
+    Severity: {result.severity}
+  </span>
+</div>
+</div>
                 </div>
                 <div style={{ height: 6, background: "#EEE9DA", borderRadius: 4, marginBottom: 18, overflow: "hidden" }}>
                   <div style={{ height: "100%", width: `${result.conf}%`, background: a.color, borderRadius: 4 }} />
