@@ -82,7 +82,7 @@ const LANGS = [
 
 /* -------------------------------- mock data -------------------------------- */
 
-const CROPS = ["Rice", "Wheat", "Potato", "Maize", "Mustard"];
+const CROPS = [  "Rice", "Wheat", "Potato",  "Maize",  "Mustard", "Tomato", "Pumpkin",  "Chilli",  "Cucumber",  "Garlic",  "Spinach",];
 const SOILS = ["Alluvial", "Loamy", "Clay", "Sandy"];
 const STAGES = ["Sowing", "Vegetative", "Flowering", "Grain fill", "Maturity"];
 
@@ -92,30 +92,120 @@ const MANDI_DATA = {
     { market: "Madhyamgram", km: 7, price: 2140 },
     { market: "Basirhat", km: 18, price: 2260 },
     { market: "Kolkata Wholesale", km: 26, price: 2310 },
+    { market: "Howrah Mandi", km: 32, price: 2285 },
+    { market: "Behala Market", km: 38, price: 2240 },
+    { market: "Haldia Mandi", km: 118, price: 2350 },
+    { market: "Purulia Market", km: 285, price: 2210 },
   ],
+
   Wheat: [
     { market: "Barasat Mandi", km: 3, price: 2410 },
     { market: "Madhyamgram", km: 7, price: 2390 },
     { market: "Basirhat", km: 18, price: 2455 },
     { market: "Kolkata Wholesale", km: 26, price: 2480 },
+    { market: "Howrah Mandi", km: 32, price: 2460 },
+    { market: "Behala Market", km: 38, price: 2425 },
+    { market: "Haldia Mandi", km: 118, price: 2510 },
+    { market: "Purulia Market", km: 285, price: 2380 },
   ],
+
   Potato: [
     { market: "Barasat Mandi", km: 3, price: 1120 },
     { market: "Madhyamgram", km: 7, price: 1085 },
     { market: "Basirhat", km: 18, price: 1210 },
     { market: "Kolkata Wholesale", km: 26, price: 1260 },
+    { market: "Howrah Mandi", km: 32, price: 1240 },
+    { market: "Behala Market", km: 38, price: 1195 },
+    { market: "Haldia Mandi", km: 118, price: 1290 },
+    { market: "Purulia Market", km: 285, price: 1160 },
   ],
+
   Maize: [
     { market: "Barasat Mandi", km: 3, price: 1890 },
     { market: "Madhyamgram", km: 7, price: 1860 },
     { market: "Basirhat", km: 18, price: 1930 },
     { market: "Kolkata Wholesale", km: 26, price: 1975 },
+    { market: "Howrah Mandi", km: 32, price: 1950 },
+    { market: "Behala Market", km: 38, price: 1915 },
+    { market: "Haldia Mandi", km: 118, price: 2000 },
+    { market: "Purulia Market", km: 285, price: 1880 },
   ],
+
   Mustard: [
     { market: "Barasat Mandi", km: 3, price: 5320 },
     { market: "Madhyamgram", km: 7, price: 5260 },
     { market: "Basirhat", km: 18, price: 5410 },
     { market: "Kolkata Wholesale", km: 26, price: 5480 },
+    { market: "Howrah Mandi", km: 32, price: 5450 },
+    { market: "Behala Market", km: 38, price: 5380 },
+    { market: "Haldia Mandi", km: 118, price: 5520 },
+    { market: "Purulia Market", km: 285, price: 5300 },
+  ],
+
+  Tomato: [
+    { market: "Barasat Mandi", km: 3, price: 2850 },
+    { market: "Madhyamgram", km: 7, price: 2750 },
+    { market: "Basirhat", km: 18, price: 3020 },
+    { market: "Kolkata Wholesale", km: 26, price: 3150 },
+    { market: "Howrah Mandi", km: 32, price: 3080 },
+    { market: "Behala Market", km: 38, price: 2950 },
+    { market: "Haldia Mandi", km: 118, price: 3250 },
+    { market: "Purulia Market", km: 285, price: 2900 },
+  ],
+
+  Pumpkin: [
+    { market: "Barasat Mandi", km: 3, price: 1650 },
+    { market: "Madhyamgram", km: 7, price: 1580 },
+    { market: "Basirhat", km: 18, price: 1720 },
+    { market: "Kolkata Wholesale", km: 26, price: 1810 },
+    { market: "Howrah Mandi", km: 32, price: 1780 },
+    { market: "Behala Market", km: 38, price: 1690 },
+    { market: "Haldia Mandi", km: 118, price: 1850 },
+    { market: "Purulia Market", km: 285, price: 1620 },
+  ],
+
+  Chilli: [
+    { market: "Barasat Mandi", km: 3, price: 6200 },
+    { market: "Madhyamgram", km: 7, price: 6050 },
+    { market: "Basirhat", km: 18, price: 6450 },
+    { market: "Kolkata Wholesale", km: 26, price: 6800 },
+    { market: "Howrah Mandi", km: 32, price: 6650 },
+    { market: "Behala Market", km: 38, price: 6350 },
+    { market: "Haldia Mandi", km: 118, price: 7000 },
+    { market: "Purulia Market", km: 285, price: 6150 },
+  ],
+
+  Cucumber: [
+    { market: "Barasat Mandi", km: 3, price: 2200 },
+    { market: "Madhyamgram", km: 7, price: 2100 },
+    { market: "Basirhat", km: 18, price: 2350 },
+    { market: "Kolkata Wholesale", km: 26, price: 2480 },
+    { market: "Howrah Mandi", km: 32, price: 2400 },
+    { market: "Behala Market", km: 38, price: 2280 },
+    { market: "Haldia Mandi", km: 118, price: 2550 },
+    { market: "Purulia Market", km: 285, price: 2150 },
+  ],
+
+  Garlic: [
+    { market: "Barasat Mandi", km: 3, price: 9200 },
+    { market: "Madhyamgram", km: 7, price: 8950 },
+    { market: "Basirhat", km: 18, price: 9500 },
+    { market: "Kolkata Wholesale", km: 26, price: 9900 },
+    { market: "Howrah Mandi", km: 32, price: 9700 },
+    { market: "Behala Market", km: 38, price: 9400 },
+    { market: "Haldia Mandi", km: 118, price: 10100 },
+    { market: "Purulia Market", km: 285, price: 9100 },
+  ],
+
+  Spinach: [
+    { market: "Barasat Mandi", km: 3, price: 1800 },
+    { market: "Madhyamgram", km: 7, price: 1720 },
+    { market: "Basirhat", km: 18, price: 1950 },
+    { market: "Kolkata Wholesale", km: 26, price: 2100 },
+    { market: "Howrah Mandi", km: 32, price: 2050 },
+    { market: "Behala Market", km: 38, price: 1900 },
+    { market: "Haldia Mandi", km: 118, price: 2150 },
+    { market: "Purulia Market", km: 285, price: 1780 },
   ],
 };
 
@@ -149,12 +239,19 @@ function buildPlan(crop, soil, stage, rainDays, t) {
   };
 
   const pestMap = {
-    Rice: "Watch for stem borer and leaf folder in humid weeks",
-    Wheat: "Watch for aphids and yellow rust in cool, moist spells",
-    Potato: "Watch for late blight after rain — check undersides of leaves",
-    Maize: "Watch for fall armyworm on young whorls",
-    Mustard: "Watch for aphid clusters on tender shoots",
-  };
+  Rice: "Watch for stem borer and leaf folder in humid weeks",
+  Wheat: "Watch for aphids and yellow rust in cool, moist spells",
+  Potato: "Watch for late blight after rain — check undersides of leaves",
+  Maize: "Watch for fall armyworm on young whorls",
+  Mustard: "Watch for aphid clusters on tender shoots",
+
+  Tomato: "Watch for fruit borer, whiteflies and early signs of leaf blight",
+  Pumpkin: "Watch for fruit fly, powdery mildew and leaf-eating caterpillars",
+  Chilli: "Watch for thrips, aphids and leaf curl symptoms",
+  Cucumber: "Watch for aphids, whiteflies and powdery mildew",
+  Garlic: "Watch for thrips and fungal leaf spot during humid conditions",
+  Spinach: "Watch for aphids, leaf miners and fungal leaf spots",
+};
 
   return {
     irrigation: overdue
