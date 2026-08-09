@@ -3,7 +3,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import {
   Sprout, Leaf, CloudRain, Camera, MessageCircle, TrendingUp,
   Droplets, Sun, Wind, MapPin, Upload, Mic, Send, ChevronRight,
-  AlertTriangle, CheckCircle2, Globe, Home, X
+  AlertTriangle, CheckCircle2, Globe, Home, X, Moon, SunMedium
 } from "lucide-react";
 
 /* ---------------------------------- i18n ---------------------------------- */
@@ -338,30 +338,81 @@ function buildPlan(crop, soil, stage, rainDays, t) {
 export default function App() {
   const [lang, setLang] = useState("en");
   const [tab, setTab] = useState("home");
+  const [darkMode, setDarkMode] = useState(false);
+
   const t = STRINGS[lang];
 
   return (
-    <div style={{ fontFamily: "'Inter', sans-serif", background: "var(--cream)", minHeight: "100%", color: "var(--forest)" }}>
+    <div
+  className={darkMode ? "app dark-mode" : "app"}
+  style={{
+    fontFamily: "'Inter', sans-serif",
+    background: "var(--cream)",
+    minHeight: "100vh",
+    color: "var(--forest)",
+    transition: "background 0.25s ease, color 0.25s ease",
+  }}
+>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=Noto+Sans+Devanagari:wght@500;600&family=Noto+Sans+Bengali:wght@500;600&display=swap');
         :root {
-          --forest: #1F3D2B;
-          --leaf: #4C7A51;
-          --leaf-light: #E7EFE3;
-          --soil: #8B5E3C;
-          --wheat: #E3A73A;
-          --cream: #FAF6EE;
-          --sky: #3E7C8A;
-          --sky-light: #E2EFF1;
-          --danger: #B5502F;
-        }
+  --forest: #1F3D2B;
+  --leaf: #4C7A51;
+  --leaf-light: #E7EFE3;
+  --soil: #8B5E3C;
+  --wheat: #E3A73A;
+  --cream: #FAF6EE;
+  --sky: #3E7C8A;
+  --sky-light: #E2EFF1;
+  --danger: #B5502F;
+
+  --card: #FFFFFF;
+  --border: #ECE7D8;
+  --muted: #5B6B5D;
+  --muted-light: #8A9389;
+  --line: #F0ECDF;
+  --nav-bg: #FFFFFF;
+}
+
+.dark-mode {
+  --forest: #EAF3E8;
+  --leaf: #79B97A;
+  --leaf-light: #243A2B;
+  --soil: #C98A62;
+  --wheat: #E3A73A;
+  --cream: #121814;
+  --sky: #70B7C4;
+  --sky-light: #1D3238;
+  --danger: #E07A5F;
+
+  --card: #1B241E;
+  --border: #344239;
+  --muted: #B7C5B8;
+  --muted-light: #8F9C90;
+  --line: #2A352D;
+  --nav-bg: #1B241E;
+}
+
+.app,
+.app * {
+  transition:
+    background-color 0.25s ease,
+    color 0.25s ease,
+    border-color 0.25s ease;
+}
         * { box-sizing: border-box; }
         .display { font-family: 'Space Grotesk', 'Noto Sans Devanagari', 'Noto Sans Bengali', sans-serif; }
         button { cursor: pointer; font-family: inherit; }
         input, select { font-family: inherit; }
       `}</style>
 
-      <TopBar t={t} lang={lang} setLang={setLang} appName={t.appName} tagline={t.tagline} />
+      <TopBar
+  t={t}
+  lang={lang}
+  setLang={setLang}
+  darkMode={darkMode}
+  setDarkMode={setDarkMode}
+/>
 
       <div style={{ display: "flex", maxWidth: 1180, margin: "0 auto" }}>
         <SideNav t={t} tab={tab} setTab={setTab} />
@@ -381,40 +432,170 @@ export default function App() {
 
 /* ---------------------------------- top bar ---------------------------------- */
 
-function TopBar({ t, lang, setLang }) {
+function TopBar({
+  t,
+  lang,
+  setLang,
+  darkMode,
+  setDarkMode,
+}) {
   return (
-    <header style={{
-      background: "var(--forest)", color: "#fff", padding: "16px 24px",
-      display: "flex", alignItems: "center", justifyContent: "space-between",
-      position: "sticky", top: 0, zIndex: 20,
-    }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 12, maxWidth: 1180, width: "100%", margin: "0 auto", justifyContent: "space-between" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <div style={{
-            width: 38, height: 38, borderRadius: 10, background: "var(--wheat)",
-            display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
-          }}>
-            <Sprout size={22} color="var(--forest)" strokeWidth={2.4} />
+    <header
+      style={{
+        background: darkMode ? "#0D130F" : "var(--forest)",
+        color: "#fff",
+        padding: "16px 24px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        position: "sticky",
+        top: 0,
+        zIndex: 20,
+        borderBottom: darkMode
+          ? "1px solid #344239"
+          : "none",
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 12,
+          maxWidth: 1180,
+          width: "100%",
+          margin: "0 auto",
+          justifyContent: "space-between",
+        }}
+      >
+        {/* LOGO */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 10,
+          }}
+        >
+          <div
+            style={{
+              width: 38,
+              height: 38,
+              borderRadius: 10,
+              background: "var(--wheat)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexShrink: 0,
+            }}
+          >
+            <Sprout
+              size={22}
+              color="#1F3D2B"
+              strokeWidth={2.4}
+            />
           </div>
+
           <div>
-            <div className="display" style={{ fontSize: 18, fontWeight: 700, lineHeight: 1.1 }}>{t.appName}</div>
-            <div style={{ fontSize: 11.5, color: "#C9D9C7", lineHeight: 1.2 }}>{t.tagline}</div>
+            <div
+              className="display"
+              style={{
+                fontSize: 18,
+                fontWeight: 700,
+                lineHeight: 1.1,
+              }}
+            >
+              {t.appName}
+            </div>
+
+            <div
+              style={{
+                fontSize: 11.5,
+                color: "#C9D9C7",
+                lineHeight: 1.2,
+              }}
+            >
+              {t.tagline}
+            </div>
           </div>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 6, background: "rgba(255,255,255,0.08)", padding: 4, borderRadius: 999 }}>
-          <Globe size={14} style={{ marginLeft: 8, color: "#C9D9C7" }} />
-          {LANGS.map((l) => (
-            <button
-              key={l.code}
-              onClick={() => setLang(l.code)}
+
+        {/* RIGHT CONTROLS */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+          }}
+        >
+          {/* DARK MODE BUTTON */}
+          <button
+            onClick={() => setDarkMode(!darkMode)}
+            title={
+              darkMode
+                ? "Switch to light mode"
+                : "Switch to dark mode"
+            }
+            style={{
+              width: 38,
+              height: 38,
+              borderRadius: 999,
+              border: "1px solid rgba(255,255,255,0.15)",
+              background: "rgba(255,255,255,0.10)",
+              color: "#fff",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            {darkMode ? (
+              <SunMedium size={18} />
+            ) : (
+              <Moon size={18} />
+            )}
+          </button>
+
+          {/* LANGUAGE SWITCHER */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              background: "rgba(255,255,255,0.08)",
+              padding: 4,
+              borderRadius: 999,
+            }}
+          >
+            <Globe
+              size={14}
               style={{
-                border: "none", padding: "6px 12px", borderRadius: 999, fontSize: 12.5, fontWeight: 600,
-                background: lang === l.code ? "var(--wheat)" : "transparent",
-                color: lang === l.code ? "var(--forest)" : "#E7EFE3",
-                transition: "all .15s",
+                marginLeft: 8,
+                color: "#C9D9C7",
               }}
-            >{l.label}</button>
-          ))}
+            />
+
+            {LANGS.map((l) => (
+              <button
+                key={l.code}
+                onClick={() => setLang(l.code)}
+                style={{
+                  border: "none",
+                  padding: "6px 12px",
+                  borderRadius: 999,
+                  fontSize: 12.5,
+                  fontWeight: 600,
+                  background:
+                    lang === l.code
+                      ? "var(--wheat)"
+                      : "transparent",
+                  color:
+                    lang === l.code
+                      ? "#1F3D2B"
+                      : "#E7EFE3",
+                }}
+              >
+                {l.label}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
     </header>
